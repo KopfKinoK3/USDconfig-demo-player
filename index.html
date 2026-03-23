@@ -612,12 +612,11 @@ function updateViewer(forceReload = false) {
   /* iOS AR Quick Look: USDZ als ios-src → nativer OpenUSD-Viewer über AR-Button */
   if (usdz) mv.setAttribute('ios-src', usdz);
 
-  /* KHR_materials_variants */
-  if (mv.availableVariants?.length) {
-    cfg.variantSets.forEach(vs => {
-      const val = state[vs.name];
-      if (val && mv.availableVariants.includes(val)) mv.variantName = val;
-    });
+  /* KHR_materials_variants: Bezug-State anwenden */
+  if (mv.availableVariants?.length && state['Bezug']) {
+    if (mv.availableVariants.includes(state['Bezug'])) {
+      mv.variantName = state['Bezug'];
+    }
   }
 }
 
@@ -693,9 +692,9 @@ function buildSwatches(vs) {
   vs.options.forEach(opt => {
     const sw = el('button', 'v-swatch' + (state[vs.name] === opt.value ? ' active' : ''));
     sw.style.background = opt.color;
-    sw.title = opt.value;
+    sw.title = opt.value.replace(/_/g, ' ');
     sw.dataset.value = opt.value;
-    if (LIGHT_COLORS.has(opt.value)) sw.dataset.light = '1';
+    if (LIGHT_COLORS.has(opt.value) || opt.light) sw.dataset.light = '1';
     sw.onclick = () => select(vs.name, opt.value);
     wrap.appendChild(sw);
   });
@@ -733,9 +732,14 @@ function select(setName, value) {
     b.classList.toggle('active', b.textContent === value));
 
   const cn = document.getElementById(`cn-${setName}`);
-  if (cn) cn.textContent = value;
+  if (cn) cn.textContent = value.replace(/_/g, ' ').replace(/Plano \d+ /i, '');
 
-  updateViewer();
+  /* KHR Bezug: direkt wechseln ohne GLB-Reload */
+  if (setName === 'Bezug' && mv.availableVariants?.includes(value)) {
+    mv.variantName = value;
+  } else {
+    updateViewer();
+  }
 }
 
 /* ── AR ─────────────────────────────────────────── */
@@ -826,27 +830,83 @@ function extractVariantSets(usdaText) {
   return sets;
 }
 
+/* ── BEZUG FARBEN (Plano KHR-Varianten) ─────────── */
+const BEZUG_COLORS = {
+  "Plano_03_pergament_cremeweiss": "#f5f5f2",
+  "Plano_07_orange": "#e9866d",
+  "Plano_34_wiesengruen_forest": "#d6e5ab",
+  "Plano_05_cremeweiss_sierragrau": "#f4f4f2",
+  "Plano_11_kastanie_cognac": "#9e7c84",
+  "Plano_12_lichtgrau_eisblau": "#f8fbff",
+  "Plano_13_nero_eisblau": "#979e9e",
+  "Plano_15_pink_sierragrau": "#f6e5ee",
+  "Plano_16_dunkelrot_eisblau": "#bd727e",
+  "Plano_17_forest_sierragrau": "#b9bca5",
+  "Plano_18_hellgrau_sierragrau": "#f2f2f1",
+  "Plano_19_sierragrau": "#d4cec8",
+  "Plano_20_tobacco_cremeweiss": "#e6d6c8",
+  "Plano_39_gelb_pastellgruen": "#fdf496",
+  "Plano_40_coconut_forest": "#917f82",
+  "Plano_41_classic_green_forest": "#a6dea7",
+  "Plano_43_petrol_nero": "#66969a",
+  "Plano_52_mint_forest": "#b3e1da",
+  "Plano_54_braun": "#a5938c",
+  "Plano_61_classic_green_cognac": "#abd997",
+  "Plano_62_dunkelgrau_nero": "#a8a8ad",
+  "Plano_63_rot_poppy_red": "#e88397",
+  "Plano_66_nero": "#93989c",
+  "Plano_67_cognac": "#d4af76",
+  "Plano_68_avocado": "#dadd95",
+  "Plano_69_dunkelgrau": "#a8a8ad",
+  "Plano_72_poppy_red": "#e4787c",
+  "Plano_73_nero_coconut": "#93989c",
+  "Plano_74_sierragrau_nero": "#d4cec8",
+  "Plano_75_kastanie_nero": "#9e7c84",
+  "Plano_80_coffee": "#cabdb2",
+  "Plano_81_blau_coconut": "#98d4f3",
+  "Plano_84_poppy_red_champagner": "#ed767d",
+  "Plano_86_dunkelbau_braun": "#7c899a",
+  "Plano_87_nero_cremeweiss": "#597789",
+  "Plano_96_rot_cognac": "#f28183",
+  "Plano_97_rot_coconut": "#ef788c",
+  "Plano_98_dunkelrot_nero": "#c7747a",
+  "Plano_99_cognac_pergament": "#d7ad84",
+};
+
+const BEZUG_LIGHT = new Set([
+  "Plano_03_pergament_cremeweiss","Plano_05_cremeweiss_sierragrau",
+  "Plano_12_lichtgrau_eisblau","Plano_15_pink_sierragrau",
+  "Plano_18_hellgrau_sierragrau","Plano_39_gelb_pastellgruen",
+]);
+
 /* ── MODEL-VIEWER EVENTS ────────────────────────── */
 mv.addEventListener('load', () => {
   document.getElementById('loading').classList.add('hidden');
 
-  /* Auto-detect KHR_materials_variants from loaded GLB */
-  if (mv.availableVariants?.length && !cfg.variantSets.length) {
-    cfg.variantSets = [{
-      name: 'Variante',
-      options: mv.availableVariants.map(v => ({ value: v, color: COLORS[v] || null })),
-      def: mv.availableVariants[0],
-    }];
-    initState();
-    buildPanel();
+  /* KHR_materials_variants: Bezug-Sektion einmalig aufbauen */
+  if (mv.availableVariants?.length) {
+    const alreadyHasBezug = cfg.variantSets.some(vs => vs.name === 'Bezug');
+    if (!alreadyHasBezug) {
+      const bezugSet = {
+        name: 'Bezug',
+        options: mv.availableVariants.map(v => ({
+          value: v,
+          color: BEZUG_COLORS[v] || '#cccccc',
+          light: BEZUG_LIGHT.has(v),
+        })),
+        def: mv.availableVariants[0],
+      };
+      cfg.variantSets.push(bezugSet);
+      state['Bezug'] = bezugSet.def;
+      buildPanel();
+    }
   }
 
-  /* Nach jedem GLB-Load: Farb-State erneut anwenden */
-  if (mv.availableVariants?.length) {
-    cfg.variantSets.forEach(vs => {
-      const val = state[vs.name];
-      if (val && mv.availableVariants.includes(val)) mv.variantName = val;
-    });
+  /* Nach jedem GLB-Load: Bezug-State erneut anwenden */
+  if (mv.availableVariants?.length && state['Bezug']) {
+    if (mv.availableVariants.includes(state['Bezug'])) {
+      mv.variantName = state['Bezug'];
+    }
   }
 });
 
