@@ -580,42 +580,63 @@ const IS_SAFARI = /Safari/.test(navigator.userAgent) &&
 const mv        = document.getElementById('mv');
 const modelTag  = document.getElementById('model-tag');
 
+/* Engine: Safari → <model> tag mit USDZ; andere → model-viewer mit GLB */
+const USE_MODEL_TAG = IS_SAFARI;
+
+if (USE_MODEL_TAG) {
+  mv.style.display = 'none';
+  modelTag.style.display = 'block';
+  modelTag.addEventListener('load', () => {
+    document.getElementById('loading').classList.add('hidden');
+  });
+} else {
+  mv.style.display = 'block';
+  modelTag.style.display = 'none';
+}
+
 /* Zeige Engine-Badge im Header */
 (function showEngineBadge() {
-  const isAR = IS_IOS && IS_SAFARI;
+  const badgeText = !IS_SAFARI ? 'model-viewer · WebGL'
+                  : IS_IOS    ? 'AR Quick Look · USDZ'
+                  :              'Safari · native USD';
+  const isCyan = IS_SAFARI;
   const badge = document.createElement('div');
   badge.style.cssText = `
     position:absolute; top:10px; right:12px; z-index:20;
     font-size:10px; font-weight:600; letter-spacing:0.04em;
     padding:3px 8px; border-radius:999px;
-    background:${isAR ? 'rgba(8,145,178,0.12)' : 'rgba(249,115,22,0.12)'};
-    color:${isAR ? 'var(--cyan)' : 'var(--amber)'};
-    border:1px solid ${isAR ? 'rgba(8,145,178,0.25)' : 'rgba(249,115,22,0.25)'};
+    background:${isCyan ? 'rgba(8,145,178,0.12)' : 'rgba(249,115,22,0.12)'};
+    color:${isCyan ? 'var(--cyan)' : 'var(--amber)'};
+    border:1px solid ${isCyan ? 'rgba(8,145,178,0.25)' : 'rgba(249,115,22,0.25)'};
   `;
-  badge.textContent = isAR ? 'AR Quick Look · USDZ' : 'model-viewer · WebGL';
+  badge.textContent = badgeText;
   document.getElementById('viewer-wrap').appendChild(badge);
 })();
-
-/* model-viewer für alle Browser; <model> tag vorerst deaktiviert */
-mv.style.display = 'block';
-modelTag.style.display = 'none';
 
 function updateViewer(forceReload = false) {
   const glb  = resolveGlb();
   const usdz = resolveUsdz();
 
-  /* Alle Browser: model-viewer mit GLB (WebGL) */
-  if (glb && (forceReload || glb !== mv.getAttribute('src'))) {
-    document.getElementById('loading').classList.remove('hidden');
-    mv.setAttribute('src', glb);
-  }
-  /* iOS AR Quick Look: USDZ als ios-src → nativer OpenUSD-Viewer über AR-Button */
-  if (usdz) mv.setAttribute('ios-src', usdz);
+  if (USE_MODEL_TAG) {
+    /* Safari: natives <model> tag mit USDZ (volle USD VariantSets) */
+    if (usdz && (forceReload || usdz !== modelTag.getAttribute('src'))) {
+      document.getElementById('loading').classList.remove('hidden');
+      modelTag.setAttribute('src', usdz);
+    }
+  } else {
+    /* Alle anderen Browser: model-viewer mit GLB (WebGL) */
+    if (glb && (forceReload || glb !== mv.getAttribute('src'))) {
+      document.getElementById('loading').classList.remove('hidden');
+      mv.setAttribute('src', glb);
+    }
+    /* iOS AR Quick Look: USDZ als ios-src */
+    if (usdz) mv.setAttribute('ios-src', usdz);
 
-  /* KHR_materials_variants: Bezug-State anwenden */
-  if (mv.availableVariants?.length && state['Bezug']) {
-    if (mv.availableVariants.includes(state['Bezug'])) {
-      mv.variantName = state['Bezug'];
+    /* KHR_materials_variants: Bezug-State anwenden */
+    if (mv.availableVariants?.length && state['Bezug']) {
+      if (mv.availableVariants.includes(state['Bezug'])) {
+        mv.variantName = state['Bezug'];
+      }
     }
   }
 }
