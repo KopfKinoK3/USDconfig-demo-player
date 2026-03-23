@@ -582,24 +582,13 @@ const IS_SAFARI = /Safari/.test(navigator.userAgent) &&
 const mv        = document.getElementById('mv');
 const modelTag  = document.getElementById('model-tag');
 
-/* Engine: Safari → <model> tag mit USD-Masterdatei (volle VariantSets + AR QL)
-           Andere  → model-viewer mit GLB + KHR_materials_variants */
-const USE_MODEL_TAG = IS_SAFARI;
-const MASTER_USDZ   = 'assets/chair-master.usdz';
+/* Engine: model-viewer (GLB/WebGL) für alle Browser.
+   <model> tag benötigt korrekten MIME-Type (model/vnd.usdz+zip) —
+   funktioniert nicht auf GitHub Pages. Für eigenes Hosting reaktivierbar. */
+const USE_MODEL_TAG = false;
 
-if (USE_MODEL_TAG) {
-  mv.style.display = 'none';
-  modelTag.setAttribute('src', MASTER_USDZ);
-  modelTag.style.display = 'block';
-  modelTag.addEventListener('load', () => {
-    document.getElementById('loading').classList.add('hidden');
-  });
-  /* Fallback: Spinner nach 20s ausblenden falls load-Event nicht feuert */
-  setTimeout(() => document.getElementById('loading').classList.add('hidden'), 20000);
-} else {
-  mv.style.display = 'block';
-  modelTag.style.display = 'none';
-}
+mv.style.display = 'block';
+modelTag.style.display = 'none';
 
 /* Zeige Engine-Badge im Header */
 (function showEngineBadge() {
