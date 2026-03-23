@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>USDconfig Player · viSales</title>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* ================================================
+   USDconfig Player v2 – viSales Design System
+   by viSales GmbH · visales.de
+   ================================================ */
+
+:root {
+  --bg-deep:     #f5f5f7;
+  --bg-panel:    #ffffff;
+  --bg-card:     #f0f0f3;
+  --bg-hover:    #e8e8ec;
+  --border:      rgba(0,0,0,0.08);
+  --border-hi:   rgba(0,0,0,0.13);
+
+  --amber:       #f97316;
+  --amber-dim:   rgba(249,115,22,0.10);
+  --amber-glow:  rgba(249,115,22,0.20);
+  --amber-light: #ea580c;
+
+  --cyan:        #0891b2;
+  --cyan-dim:    rgba(8,145,178,0.08);
+  --cyan-glow:   rgba(8,145,178,0.18);
+
+  --text-hi:     #1a1a1a;
+  --text-mid:    #666666;
+  --text-lo:     #aaaaaa;
+
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-pill: 9999px;
+
+  --font: -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  --panel-w: 296px;
+  --header-h: 54px;
+  --footer-h: 80px;
+  --transition: 0.14s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: var(--bg-deep); color: var(--text-hi); font-family: var(--font); overflow: hidden; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+
+/* ── LAYOUT ───────────────────────────── */
+#app {
+  display: grid;
+  grid-template-columns: 1fr var(--panel-w);
+  grid-template-rows: var(--header-h) 1fr;
+  height: 100vh; height: 100dvh;
+}
+
+/* ── HEADER ───────────────────────────── */
+#header {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 18px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: relative; z-index: 10;
+}
+
+#logo {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none; flex-shrink: 0;
+}
+#logo-mark {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 60%, #ea580c 100%);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #000; letter-spacing: -0.5px;
+  box-shadow: 0 2px 8px rgba(249,115,22,0.35);
+}
+#logo-word {
+  font-size: 14px; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--text-hi);
+}
+#logo-word em { color: var(--amber); font-style: normal; }
+
+#product-label {
+  font-size: 13px; color: var(--text-mid);
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+}
+
+#header-right { margin-left: auto; display: flex; gap: 6px; }
+
+/* ── VIEWER AREA ───────────────────────── */
+#viewer-wrap {
+  position: relative;
+  background: radial-gradient(ellipse at 40% 30%, #ececf2 0%, #f5f5f7 100%);
+  overflow: hidden;
+}
+
+model-viewer {
+  width: 100%; height: 100%;
+  --progress-bar-color: var(--amber);
+  --progress-bar-height: 2px;
+}
+
+/* ── LOADING OVERLAY ───────────────────── */
+#loading {
+  position: absolute; inset: 0;
+  background: #f5f5f7;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  z-index: 20;
+  transition: opacity 0.4s ease;
+}
+#loading.hidden { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 38px; height: 38px;
+  border: 2px solid var(--border-hi);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 12px; color: var(--text-mid); letter-spacing: 0.04em; }
+
+/* ── WATERMARK ─────────────────────────── */
+#watermark {
+  position: absolute; bottom: 14px; left: 16px;
+  font-size: 10px; color: rgba(0,0,0,0.2); letter-spacing: 0.06em;
+  display: flex; align-items: center; gap: 5px;
+  pointer-events: none; user-select: none;
+}
+#watermark svg { opacity: 0.6; }
+
+/* ── PANEL ─────────────────────────────── */
+#panel {
+  display: flex; flex-direction: column;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+}
+#panel-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 18px 16px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+#panel-scroll::-webkit-scrollbar { width: 3px; }
+#panel-scroll::-webkit-scrollbar-track { background: transparent; }
+#panel-scroll::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+/* ── PANEL FOOTER ──────────────────────── */
+#panel-footer {
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* ── BUTTONS ───────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi);
+  background: var(--bg-card);
+  color: var(--text-mid);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  font-family: var(--font);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+}
+.btn:hover { background: var(--bg-hover); color: var(--text-hi); border-color: var(--border-hi); }
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; stroke-width: 1.8; }
+
+.btn-icon { width: 36px; height: 36px; padding: 0; border-radius: var(--radius-xs); }
+
+.btn-ar {
+  width: 100%; padding: 13px;
+  font-size: 14px; font-weight: 600;
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  border-radius: var(--radius-sm);
+  letter-spacing: -0.01em;
+}
+.btn-ar:hover { background: var(--cyan-glow); color: var(--cyan); }
+.btn-ar svg { stroke-width: 1.6; }
+
+.btn-share {
+  width: 100%;
+  background: var(--bg-card);
+  border-color: var(--border-hi);
+  color: var(--text-mid);
+}
+.btn-share:hover { color: var(--text-hi); }
+
+/* ── VARIANT SECTIONS ──────────────────── */
+.v-section { display: flex; flex-direction: column; gap: 9px; }
+
+.v-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-lo);
+}
+
+.v-options { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Pill */
+.v-pill {
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hi);
+  background: var(--bg-card);
+  color: var(--text-mid);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap; user-select: none;
+  font-family: var(--font);
+}
+.v-pill:hover { background: var(--bg-hover); color: var(--text-hi); }
+.v-pill.active {
+  border-color: var(--amber);
+  background: var(--amber-dim);
+  color: var(--amber-light);
+}
+
+/* Swatch */
+.v-swatches { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.v-swatch {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  outline: none; flex-shrink: 0;
+  position: relative;
+}
+.v-swatch:hover { transform: scale(1.12); }
+.v-swatch.active {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px var(--bg-panel), 0 0 0 4px var(--amber);
+}
+/* White swatch needs inner border */
+.v-swatch[data-light="1"] { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); }
+.v-swatch[data-light="1"].active { box-shadow: 0 0 0 2px var(--bg-panel), 0 0 0 4px var(--amber), inset 0 0 0 1px rgba(0,0,0,0.12); }
+
+.v-color-name {
+  font-size: 11px; color: var(--text-mid);
+  min-height: 16px;
+  transition: color var(--transition);
+}
+
+/* Binary toggle */
+.v-toggle {
+  display: flex;
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+.v-toggle-btn {
+  flex: 1; padding: 7px 10px;
+  background: var(--bg-card);
+  border: none; border-radius: 0;
+  color: var(--text-mid);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font);
+}
+.v-toggle-btn + .v-toggle-btn { border-left: 1px solid var(--border-hi); }
+.v-toggle-btn:hover { background: var(--bg-hover); color: var(--text-hi); }
+.v-toggle-btn.active { background: var(--amber-dim); color: var(--amber-light); }
+
+/* ── DIVIDER ───────────────────────────── */
+.divider { height: 1px; background: var(--border); }
+
+/* ── BADGE ─────────────────────────────── */
+.usd-badge {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 11px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 11px; color: var(--text-lo);
+  letter-spacing: 0.02em;
+}
+.usd-badge-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* ── EMPTY STATE ───────────────────────── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: 100%; gap: 10px;
+  text-align: center; padding: 20px;
+  color: var(--text-lo);
+}
+.empty-state svg { opacity: 0.25; }
+.empty-state p { font-size: 12px; line-height: 1.6; }
+
+/* ── TOAST ─────────────────────────────── */
+#toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px; color: var(--text-hi);
+  opacity: 0; pointer-events: none;
+  transition: all 0.18s ease;
+  white-space: nowrap; z-index: 100;
+}
+#toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── MOBILE ────────────────────────────── */
+@media (max-width: 600px) {
+  :root { --panel-w: 100%; --header-h: 48px; }
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--header-h) 1fr auto;
+  }
+  #viewer-wrap { min-height: 52vw; }
+  #panel {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    max-height: 44vh;
+  }
+  #panel-scroll {
+    flex-direction: row; flex-wrap: nowrap;
+    overflow-x: auto; overflow-y: hidden;
+    padding: 14px 14px;
+    gap: 14px;
+  }
+  .v-section { min-width: 100px; flex-shrink: 0; }
+  #panel-footer { flex-direction: row; gap: 8px; }
+  .btn-share { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── HEADER ── -->
+  <header id="header">
+    <a id="logo" href="https://visales.de" target="_blank" rel="noopener">
+      <div id="logo-mark">U</div>
+      <div id="logo-word">USD<em>config</em></div>
+    </a>
+    <span id="product-label" style="display:none"></span>
+    <div id="header-right">
+      <button class="btn btn-icon" title="Link kopieren" onclick="doShare()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+      </button>
+      <button class="btn btn-icon" title="Vollbild" onclick="doFullscreen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── 3D VIEWER ── -->
+  <div id="viewer-wrap">
+
+    <!-- Safari / WebKit: native OpenUSD via <model> tag -->
+    <model
+      id="model-tag"
+      camera-controls
+      style="display:none;width:100%;height:100%;background:transparent;"
+    ></model>
+
+    <!-- Alle anderen Browser: model-viewer (GLB / WebGL) -->
+    <model-viewer
+      id="mv"
+      camera-controls
+      touch-action="pan-y"
+      auto-rotate
+      auto-rotate-delay="2500"
+      rotation-per-second="12deg"
+      shadow-intensity="1.4"
+      shadow-softness="0.9"
+      environment-image="neutral"
+      exposure="1.15"
+      ar
+      ar-modes="quick-look webxr scene-viewer"
+    >
+      <!-- Hide built-in AR button; we use our own -->
+      <button slot="ar-button" style="display:none"></button>
+    </model-viewer>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Lade Modell …</div>
+    </div>
+
+    <div id="watermark">
+      <svg width="9" height="9" viewBox="0 0 9 9"><circle cx="4.5" cy="4.5" r="4.5" fill="currentColor"/></svg>
+      by viSales
+    </div>
+  </div>
+
+  <!-- ── CONFIG PANEL ── -->
+  <aside id="panel">
+    <div id="panel-scroll">
+      <!-- Populated by JS -->
+    </div>
+    <div id="panel-footer">
+      <button class="btn btn-ar" onclick="doAR()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        In AR anzeigen
+      </button>
+      <button class="btn btn-share" onclick="doShare()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        Konfiguration teilen
+      </button>
+    </div>
+  </aside>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- ================================================
+     USDconfig Player v2.0
+     © viSales GmbH · visales.de
+     ================================================ -->
+<script>
+'use strict';
+
+/* ── COLOR PRESETS ──────────────────────────────── */
+const COLORS = {
+  Natur:'#c5a47a', Nature:'#c5a47a',
+  Berry:'#7b3f6e', Beere:'#7b3f6e',
+  Sage:'#6b8f71', Salbei:'#6b8f71',
+  Coral:'#e07055', Koralle:'#e07055',
+  White:'#f0ede8', Weiß:'#f0ede8', Weiss:'#f0ede8',
+  Lagoon:'#2e8b9c', Lagune:'#2e8b9c',
+  Lemon:'#d4c44a', Zitrone:'#d4c44a',
+  Olive:'#6b7a3a',
+  Black:'#1c1c1c', Schwarz:'#1c1c1c',
+  Grey:'#8a8a8a', Gray:'#8a8a8a', Grau:'#8a8a8a',
+  Red:'#c0392b', Rot:'#c0392b',
+  Blue:'#2980b9', Blau:'#2980b9',
+  Green:'#27ae60', Grün:'#27ae60',
+  Yellow:'#f1c40f', Gelb:'#f1c40f',
+  Orange:'#e67e22',
+  Purple:'#9b59b6', Lila:'#9b59b6',
+  Pink:'#e91e8c', Rosa:'#e91e8c',
+  Brown:'#795548', Braun:'#795548',
+  Anthracite:'#3d3d3d', Anthrazit:'#3d3d3d',
+  Silver:'#b0b0b8', Silber:'#b0b0b8',
+  Gold:'#c9a84c',
+};
+
+/* Light colors that need an inset border */
+const LIGHT_COLORS = new Set(['White','Weiß','Weiss','Lemon','Zitrone','Yellow','Gelb','Silver','Silber']);
+
+/* ── CONFIG / STATE ─────────────────────────────── */
+const cfg = {
+  glbUrl:   '',
+  usdzUrl:  '',
+  name:     '',
+  variantSets: [],   /* [{name, options:[{value,color}], def}] */
+};
+
+/* current selection: { SetName: 'Value', … } */
+const state = {};
+
+/* ── PARSE URL PARAMS ───────────────────────────── */
+function parseURL() {
+  const p = new URLSearchParams(location.search);
+
+  cfg.glbUrl  = p.get('glb')  || p.get('glbUrl')  || 'assets/product-kontur-soft-ohne.glb';
+  cfg.usdzUrl = p.get('usdz') || p.get('usdzUrl') || 'assets/product-kontur-soft-ohne.usdz';
+  cfg.name    = p.get('name') || p.get('productName') || 'Vitra ID Chair';
+
+  /* New format: v=SetName:Opt1|Opt2:Default */
+  p.getAll('v').forEach(raw => {
+    const [name, opts, def] = raw.split(':');
+    if (!name || !opts) return;
+    const options = opts.split('|').map(v => ({ value: v, color: COLORS[v] || null }));
+    cfg.variantSets.push({ name, options, def: def || options[0]?.value });
+  });
+
+  /* Legacy format: variantSet=SetName,Opt1|Opt2|Opt3,Default */
+  p.getAll('variantSet').forEach(raw => {
+    const parts = raw.split(',');
+    if (parts.length < 2) return;
+    const name    = parts[0];
+    const options = parts[1].split('|').map(v => ({ value: v, color: COLORS[v] || null }));
+    const def     = parts[2] || options[0]?.value;
+    cfg.variantSets.push({ name, options, def });
+  });
+
+  /* Default-Varianten wenn keine URL-Parameter gesetzt */
+  if (cfg.variantSets.length === 0) {
+    cfg.glbUrl = 'assets/product-[Sitzform]-[Lehne]-[Armlehnen].glb';
+    cfg.usdzUrl = 'assets/product-[Sitzform]-[Lehne]-[Armlehnen].usdz';
+    cfg.variantSets = [
+      { name: 'Sitzform', options: [{value:'kontur'},{value:'normal'}], def: 'kontur' },
+      { name: 'Lehne',    options: [{value:'soft'},{value:'trim'}],    def: 'soft'   },
+      { name: 'Armlehnen', options: [{value:'ohne'},{value:'armlehnen_exoliert_3d'},{value:'armlehnen_poliert_ring'}], def: 'ohne' },
+    ];
+  }
+
+  /* Product name label */
+  if (cfg.name) {
+    const lbl = document.getElementById('product-label');
+    lbl.textContent = cfg.name;
+    lbl.style.display = '';
+  }
+}
+
+function initState() {
+  cfg.variantSets.forEach(vs => { state[vs.name] = vs.def; });
+}
+
+/* ── URL HELPERS ────────────────────────────────── */
+/**
+ * Resolves the GLB URL by replacing [VarName] / {VarName} templates
+ * with the currently selected variant value.
+ */
+function resolveGlb() {
+  return cfg.glbUrl.replace(/[\[{](\w+)[\]}]/g, (_, k) => encodeURIComponent((state[k] ?? k).toLowerCase()));
+}
+
+/**
+ * Appends variant state as URL fragment to the USDZ URL.
+ * Apple Quick Look reads #variant=SetName:Value
+ * We use a custom multi-variant encoding: #v=Set:Val&v=Set2:Val2
+ */
+function resolveUsdz() {
+  if (!cfg.usdzUrl) return '';
+  const fragment = Object.entries(state)
+    .filter(([,v]) => v)
+    .map(([k,v]) => `v=${encodeURIComponent(k)}:${encodeURIComponent(v)}`)
+    .join('&');
+  return fragment ? `${cfg.usdzUrl}#${fragment}` : cfg.usdzUrl;
+}
+
+/**
+ * Generates a shareable URL reflecting the current selection.
+ */
+function buildShareUrl() {
+  const url = new URL(location.href);
+  const sp  = url.searchParams;
+  /* Clear existing variant params */
+  sp.delete('v');
+  cfg.variantSets.forEach(vs => {
+    sp.append('v', `${vs.name}:${vs.options.map(o=>o.value).join('|')}:${state[vs.name]}`);
+  });
+  /* Keep glb/usdz with current values */
+  if (cfg.glbUrl)  sp.set('glb',  cfg.glbUrl);
+  if (cfg.usdzUrl) sp.set('usdz', cfg.usdzUrl);
+  if (cfg.name)    sp.set('name', cfg.name);
+  return url.toString();
+}
+
+/* ── UPDATE MODEL VIEWER ────────────────────────── */
+/* ── ENGINE DETECTION ───────────────────────────── */
+const IS_IOS    = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const IS_SAFARI = /Safari/.test(navigator.userAgent) &&
+                  !/Chrome|CriOS|FxiOS|Edg/.test(navigator.userAgent);
+
+const mv        = document.getElementById('mv');
+const modelTag  = document.getElementById('model-tag');
+
+/* Zeige Engine-Badge im Header */
+(function showEngineBadge() {
+  const isAR = IS_IOS && IS_SAFARI;
+  const badge = document.createElement('div');
+  badge.style.cssText = `
+    position:absolute; top:10px; right:12px; z-index:20;
+    font-size:10px; font-weight:600; letter-spacing:0.04em;
+    padding:3px 8px; border-radius:999px;
+    background:${isAR ? 'rgba(8,145,178,0.12)' : 'rgba(249,115,22,0.12)'};
+    color:${isAR ? 'var(--cyan)' : 'var(--amber)'};
+    border:1px solid ${isAR ? 'rgba(8,145,178,0.25)' : 'rgba(249,115,22,0.25)'};
+  `;
+  badge.textContent = isAR ? 'AR Quick Look · USDZ' : 'model-viewer · WebGL';
+  document.getElementById('viewer-wrap').appendChild(badge);
+})();
+
+/* model-viewer für alle Browser; <model> tag vorerst deaktiviert */
+mv.style.display = 'block';
+modelTag.style.display = 'none';
+
+function updateViewer(forceReload = false) {
+  const glb  = resolveGlb();
+  const usdz = resolveUsdz();
+
+  /* Alle Browser: model-viewer mit GLB (WebGL) */
+  if (glb && (forceReload || glb !== mv.getAttribute('src'))) {
+    document.getElementById('loading').classList.remove('hidden');
+    mv.setAttribute('src', glb);
+  }
+  /* iOS AR Quick Look: USDZ als ios-src → nativer OpenUSD-Viewer über AR-Button */
+  if (usdz) mv.setAttribute('ios-src', usdz);
+
+  /* KHR_materials_variants */
+  if (mv.availableVariants?.length) {
+    cfg.variantSets.forEach(vs => {
+      const val = state[vs.name];
+      if (val && mv.availableVariants.includes(val)) mv.variantName = val;
+    });
+  }
+}
+
+/* ── BUILD PANEL UI ─────────────────────────────── */
+function buildPanel() {
+  const scroll = document.getElementById('panel-scroll');
+  scroll.innerHTML = '';
+
+  if (!cfg.variantSets.length) {
+    scroll.innerHTML = `
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        <p>Keine Varianten konfiguriert.<br>Füge <code>variantSet=…</code> zur URL hinzu.</p>
+      </div>`;
+    return;
+  }
+
+  cfg.variantSets.forEach((vs, i) => {
+    if (i > 0) scroll.appendChild(divider());
+
+    const sec = el('div', 'v-section');
+    sec.dataset.set = vs.name;
+
+    const lbl = el('div', 'v-label');
+    lbl.textContent = vs.name;
+    sec.appendChild(lbl);
+
+    const allColors    = vs.options.every(o => o.color);
+    const isBinary     = vs.options.length === 2;
+    const isStructural = cfg.glbUrl.includes(`[${vs.name}]`) || cfg.glbUrl.includes(`{${vs.name}}`);
+
+    if (isBinary) {
+      sec.appendChild(buildToggle(vs));
+    } else if (allColors && !isStructural) {
+      sec.appendChild(buildSwatches(vs));
+      const nameLbl = el('div', 'v-color-name');
+      nameLbl.id = `cn-${vs.name}`;
+      nameLbl.textContent = state[vs.name] ?? '';
+      sec.appendChild(nameLbl);
+    } else {
+      sec.appendChild(buildPills(vs));
+    }
+
+    scroll.appendChild(sec);
+  });
+
+  /* OpenUSD badge */
+  if (cfg.usdzUrl) {
+    scroll.appendChild(divider());
+    const badge = el('div', 'usd-badge');
+    badge.innerHTML = `<div class="usd-badge-dot"></div><span>OpenUSD · USDZ · Quick&nbsp;Look</span>`;
+    scroll.appendChild(badge);
+  }
+}
+
+function buildToggle(vs) {
+  const wrap = el('div', 'v-toggle');
+  vs.options.forEach(opt => {
+    const btn = el('button', 'v-toggle-btn' + (state[vs.name] === opt.value ? ' active' : ''));
+    btn.textContent = opt.value;
+    btn.onclick = () => select(vs.name, opt.value);
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
+function buildSwatches(vs) {
+  const wrap = el('div', 'v-swatches');
+  vs.options.forEach(opt => {
+    const sw = el('button', 'v-swatch' + (state[vs.name] === opt.value ? ' active' : ''));
+    sw.style.background = opt.color;
+    sw.title = opt.value;
+    sw.dataset.value = opt.value;
+    if (LIGHT_COLORS.has(opt.value)) sw.dataset.light = '1';
+    sw.onclick = () => select(vs.name, opt.value);
+    wrap.appendChild(sw);
+  });
+  return wrap;
+}
+
+function buildPills(vs) {
+  const wrap = el('div', 'v-options');
+  vs.options.forEach(opt => {
+    const pill = el('button', 'v-pill' + (state[vs.name] === opt.value ? ' active' : ''));
+    pill.textContent = opt.value.replace(/_/g, ' ');
+    pill.dataset.value = opt.value;
+    pill.onclick = () => select(vs.name, opt.value);
+    wrap.appendChild(pill);
+  });
+  return wrap;
+}
+
+/* ── VARIANT SELECTION ──────────────────────────── */
+function select(setName, value) {
+  if (state[setName] === value) return;
+  state[setName] = value;
+
+  /* Update all UI controls for this set */
+  const sec = document.querySelector(`.v-section[data-set="${setName}"]`);
+  if (!sec) return;
+
+  sec.querySelectorAll('.v-pill').forEach(b =>
+    b.classList.toggle('active', b.dataset.value === value));
+
+  sec.querySelectorAll('.v-swatch').forEach(b =>
+    b.classList.toggle('active', b.dataset.value === value));
+
+  sec.querySelectorAll('.v-toggle-btn').forEach(b =>
+    b.classList.toggle('active', b.textContent === value));
+
+  const cn = document.getElementById(`cn-${setName}`);
+  if (cn) cn.textContent = value;
+
+  updateViewer();
+}
+
+/* ── AR ─────────────────────────────────────────── */
+function doAR() {
+  /* 1. model-viewer native AR (WebXR / Quick Look via ios-src) */
+  if (mv.canActivateAR) {
+    mv.activateAR();
+    return;
+  }
+
+  /* 2. Explicit iOS Quick Look link */
+  const usdz = resolveUsdz();
+  if (usdz && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    const a = document.createElement('a');
+    a.rel = 'ar'; a.href = usdz;
+    const img = document.createElement('img');
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+    a.appendChild(img);
+    document.body.appendChild(a);
+    a.click();
+    requestAnimationFrame(() => document.body.removeChild(a));
+    return;
+  }
+
+  /* 3. Fallback */
+  toast('AR ist auf diesem Gerät nicht verfügbar');
+}
+
+/* ── SHARE ──────────────────────────────────────── */
+function doShare() {
+  const url = buildShareUrl();
+  navigator.clipboard?.writeText(url).then(
+    () => toast('Link kopiert ✓'),
+    () => toast(url)
+  );
+}
+
+/* ── FULLSCREEN ─────────────────────────────────── */
+function doFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* ── TOAST ──────────────────────────────────────── */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('visible'), 2600);
+}
+
+/* ── USDZ VARIANT PARSER (experimental) ────────── */
+async function parseUsdzVariants(url) {
+  try {
+    if (typeof JSZip === 'undefined') return;
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) return;
+    const zip = await JSZip.loadAsync(await res.arrayBuffer());
+    for (const fname of Object.keys(zip.files).filter(f => f.endsWith('.usda'))) {
+      const text = await zip.files[fname].async('text');
+      const sets = extractVariantSets(text);
+      if (sets.length && !cfg.variantSets.length) {
+        cfg.variantSets.push(...sets);
+        initState();
+        buildPanel();
+        return;
+      }
+    }
+  } catch (e) {
+    console.debug('[USDconfig] USDZ parse skipped:', e.message);
+  }
+}
+
+function extractVariantSets(usdaText) {
+  const sets = [];
+  const re = /variantSet\s+"(\w+)"\s*=\s*\{([^}]*)\}/gs;
+  let m;
+  while ((m = re.exec(usdaText)) !== null) {
+    const name = m[1];
+    const opts = [];
+    const optRe = /"([^"]+)"\s*\{/g;
+    let om;
+    while ((om = optRe.exec(m[2])) !== null)
+      opts.push({ value: om[1], color: COLORS[om[1]] || null });
+    if (opts.length) sets.push({ name, options: opts, def: opts[0].value });
+  }
+  return sets;
+}
+
+/* ── MODEL-VIEWER EVENTS ────────────────────────── */
+mv.addEventListener('load', () => {
+  document.getElementById('loading').classList.add('hidden');
+
+  /* Auto-detect KHR_materials_variants from loaded GLB */
+  if (mv.availableVariants?.length && !cfg.variantSets.length) {
+    cfg.variantSets = [{
+      name: 'Variante',
+      options: mv.availableVariants.map(v => ({ value: v, color: COLORS[v] || null })),
+      def: mv.availableVariants[0],
+    }];
+    initState();
+    buildPanel();
+  }
+
+  /* Nach jedem GLB-Load: Farb-State erneut anwenden */
+  if (mv.availableVariants?.length) {
+    cfg.variantSets.forEach(vs => {
+      const val = state[vs.name];
+      if (val && mv.availableVariants.includes(val)) mv.variantName = val;
+    });
+  }
+});
+
+mv.addEventListener('error', () => {
+  document.getElementById('loading').classList.add('hidden');
+});
+
+/* ── UTILS ──────────────────────────────────────── */
+function el(tag, cls) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+function divider() { return el('div', 'divider'); }
+
+/* ── BOOTSTRAP ──────────────────────────────────── */
+(function init() {
+  parseURL();
+  initState();
+  buildPanel();
+
+  if (!cfg.glbUrl) {
+    document.getElementById('loading').classList.add('hidden');
+  } else {
+    updateViewer(true);
+  }
+
+  /* If USDZ given but no variant sets defined via URL → try parse */
+  if (cfg.usdzUrl && !cfg.variantSets.length) {
+    parseUsdzVariants(cfg.usdzUrl);
+  }
+})();
+</script>
+</body>
+</html>
