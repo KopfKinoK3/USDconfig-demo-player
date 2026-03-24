@@ -1,0 +1,67 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+    doc = "Cube with Red/Green material variants for AR Quick Look"
+)
+
+def Xform "Root" (
+    variants = {
+        string materialVariant = "Red"
+    }
+    prepend variantSets = "materialVariant"
+)
+{
+    def Cube "Cube" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        double size = 0.1
+        rel material:binding = </Root/Materials/RedMaterial>
+    }
+
+    variantSet "materialVariant" = {
+        "Red" {
+            over "Cube" {
+                rel material:binding = </Root/Materials/RedMaterial>
+            }
+        }
+        "Green" {
+            over "Cube" {
+                rel material:binding = </Root/Materials/GreenMaterial>
+            }
+        }
+    }
+
+    def Scope "Materials"
+    {
+        def Material "RedMaterial"
+        {
+            token outputs:surface.connect = </Root/Materials/RedMaterial/PBRShader.outputs:surface>
+
+            def Shader "PBRShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.9, 0.1, 0.1)
+                float inputs:metallic = 0.0
+                float inputs:roughness = 0.4
+                token outputs:surface
+            }
+        }
+
+        def Material "GreenMaterial"
+        {
+            token outputs:surface.connect = </Root/Materials/GreenMaterial/PBRShader.outputs:surface>
+
+            def Shader "PBRShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.1, 0.8, 0.1)
+                float inputs:metallic = 0.0
+                float inputs:roughness = 0.4
+                token outputs:surface
+            }
+        }
+    }
+    }
