@@ -3,121 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USDZ Cube Configurator – Apple Pay Banner Demo</title>
+    <title>USDconfig Demo \u2013 Cube + Apple Pay</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-            background: #0a0a0a;
-            color: #e8e8e8;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
+            background: #0a0a0a; color: #e8e8e8;
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; padding: 40px 20px;
         }
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 28px; font-weight: 600; color: #f5a623; margin-bottom: 8px; }
-        .header p { font-size: 14px; color: #888; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .header h1 { font-size: 24px; font-weight: 600; color: #f5a623; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: #666; }
         .product-card {
             background: #1a1a1a; border: 1px solid #333; border-radius: 16px;
-            padding: 32px; max-width: 400px; width: 100%; text-align: center;
+            padding: 28px; max-width: 380px; width: 100%; text-align: center;
         }
-        .product-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-        .product-card .subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
-        .product-card .price { font-size: 24px; font-weight: 700; color: #f5a623; margin-bottom: 24px; }
-        .ar-link { display: inline-block; text-decoration: none; }
-        .ar-link img { width: 300px; height: 300px; object-fit: contain; border-radius: 12px; background: #111; }
-        .ar-badge {
-            display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
-            padding: 12px 24px; background: linear-gradient(135deg, #f5a623, #e8961e);
-            color: #000; border-radius: 10px; font-weight: 600; font-size: 15px;
+        .product-card h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .product-card .price { font-size: 22px; font-weight: 700; color: #f5a623; margin: 12px 0 20px; }
+        .color-picker { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
+        .color-btn {
+            width: 56px; height: 56px; border-radius: 14px; border: 3px solid transparent;
+            cursor: pointer; transition: all 0.2s ease;
         }
-        .ar-badge svg { width: 20px; height: 20px; }
+        .color-btn.active { border-color: #f5a623; transform: scale(1.1); }
+        .color-btn:hover { transform: scale(1.05); }
+        .color-btn-red { background: linear-gradient(135deg, #e62020, #b01515); }
+        .color-btn-green { background: linear-gradient(135deg, #1ace1a, #0d8a0d); }
+        .color-label { font-size: 11px; color: #888; margin-top: 6px; display: block; }
+        .color-option { display: flex; flex-direction: column; align-items: center; }
+        .preview-container {
+            width: 100%; aspect-ratio: 1; border-radius: 12px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preview-cube {
+            width: 120px; height: 120px; border-radius: 8px;
+            transition: background 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .preview-cube.red { background: linear-gradient(135deg, #e62020, #b01515); }
+        .preview-cube.green { background: linear-gradient(135deg, #1ace1a, #0d8a0d); }
+        .ar-link { display: none; }
+        .ar-button {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 14px 28px; border-radius: 12px; border: none; cursor: pointer;
+            font-size: 16px; font-weight: 600; color: #000;
+            background: linear-gradient(135deg, #f5a623, #e8961e);
+            transition: transform 0.15s ease; text-decoration: none;
+        }
+        .ar-button:active { transform: scale(0.97); }
+        .ar-button svg { width: 22px; height: 22px; }
+        .selected-label { font-size: 13px; color: #888; margin-bottom: 16px; }
+        .selected-label span { color: #f5a623; font-weight: 600; }
         .info-section {
-            max-width: 400px; width: 100%; margin-top: 32px; padding: 24px;
+            max-width: 380px; width: 100%; margin-top: 24px; padding: 20px;
             background: #1a1a1a; border: 1px solid #333; border-radius: 16px;
+            font-size: 12px; color: #666; line-height: 1.6;
         }
-        .info-section h3 { font-size: 16px; font-weight: 600; color: #f5a623; margin-bottom: 12px; }
-        .info-section p { font-size: 13px; line-height: 1.6; color: #aaa; }
-        .info-section code { background: #222; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #4ecdc4; }
-        .variant-info { display: flex; gap: 12px; margin-top: 16px; justify-content: center; }
-        .variant-chip {
-            display: flex; align-items: center; gap: 6px; padding: 6px 14px;
-            border-radius: 20px; font-size: 13px; font-weight: 500; background: #222; border: 1px solid #333;
-        }
-        .variant-chip .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot-red { background: #e62020; }
-        .dot-green { background: #1ace1a; }
-        .code-block {
-            margin-top: 20px; background: #111; border: 1px solid #333; border-radius: 8px;
-            padding: 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px;
-            color: #4ecdc4; overflow-x: auto; text-align: left; line-height: 1.5;
-            white-space: pre-wrap; word-break: break-all;
-        }
-        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #555; }
+        .info-section strong { color: #f5a623; }
+        .footer { margin-top: 32px; font-size: 11px; color: #444; }
         .footer a { color: #f5a623; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>USDZ Cube Configurator</h1>
-        <p>Apple Pay Banner + Material Variants Demo</p>
+        <h1>USDconfig + Apple Pay</h1>
+        <p>Produktauswahl vor AR \u00b7 Apple Pay Banner im Viewer</p>
     </div>
     <div class="product-card">
         <h2>3D Cube</h2>
-        <p class="subtitle">Mit Farbvarianten: Rot &amp; Gr\u00fcn</p>
         <div class="price">\u20ac 9,99</div>
-        <a rel="ar" href="cube_configurator.usdz#applePayButtonType=plain&checkoutTitle=3D%20Cube&checkoutSubtitle=Farbvarianten%3A%20Rot%20%26%20Gr%C3%BCn&price=%E2%82%AC9%2C99" class="ar-link">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect fill='%23111'/%3E%3Cg transform='translate(150,150)'%3E%3Cpolygon points='-50,-40 50,-40 80,10 30,60 -80,60 -30,10' fill='%23e62020' opacity='0.85'/%3E%3Cpolygon points='50,-40 80,10 30,60 30,10' fill='%23b01515' opacity='0.85'/%3E%3C/g%3E%3Ctext x='150' y='250' text-anchor='middle' fill='%23f5a623' font-family='system-ui' font-size='14' font-weight='600'%3EIn AR ansehen%3C/text%3E%3C/svg%3E" alt="3D Cube - In AR ansehen">
+        <div class="color-picker">
+            <div class="color-option">
+                <button class="color-btn color-btn-red active" data-color="red" onclick="selectColor(this)"></button>
+                <span class="color-label">Rot</span>
+            </div>
+            <div class="color-option">
+                <button class="color-btn color-btn-green" data-color="green" onclick="selectColor(this)"></button>
+                <span class="color-label">Gr\u00fcn</span>
+            </div>
+        </div>
+        <div class="preview-container">
+            <div class="preview-cube red" id="previewCube"></div>
+        </div>
+        <p class="selected-label">Ausgew\u00e4hlt: <span id="selectedLabel">Rot</span></p>
+        <a rel="ar" id="arLink" href="cube_red.usdz#applePayButtonType=plain&checkoutTitle=3D%20Cube%20Rot&checkoutSubtitle=Farbe%3A%20Rot&price=%E2%82%AC9%2C99">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E" style="width:0;height:0;">
         </a>
-        <div class="ar-badge">
+        <button class="ar-button" onclick="openAR()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
             In AR ansehen
-        </div>
-        <div class="variant-info">
-            <div class="variant-chip"><div class="dot dot-red"></div>Rot</div>
-            <div class="variant-chip"><div class="dot dot-green"></div>Gr\u00fcn</div>
-        </div>
+        </button>
     </div>
     <div class="info-section">
-        <h3>Implementierung</h3>
-        <p>Die USDZ-Datei enth\u00e4lt ein USD <code>VariantSet</code> namens <code>materialVariant</code> mit zwei Optionen. AR Quick Look erkennt das VariantSet automatisch und zeigt einen Picker im AR-Viewer.</p>
-        <p style="margin-top: 8px;">Der Apple Pay Banner wird \u00fcber URL-Fragment-Parameter gesteuert:</p>
-        <div class="code-block">&lt;a rel="ar"
-   href="cube_configurator.usdz
-         #applePayButtonType=plain
-         &amp;checkoutTitle=3D%20Cube
-         &amp;checkoutSubtitle=Farbvarianten
-         &amp;price=%E2%82%AC9%2C99"&gt;
-  &lt;img src="preview.png"&gt;
-&lt;/a&gt;</div>
-    </div>
-    <div class="info-section">
-        <h3>Event Listener (Apple Pay Tap)</h3>
-        <p>Wenn der User auf den Apple Pay Button tippt, wird AR Quick Look geschlossen und ein Event gefeuert:</p>
-        <div class="code-block">document.querySelector('a[rel="ar"]')
-  .addEventListener('message', (e) =&gt; {
-    if (e.data === '_apple_ar_quicklook_button_tapped') {
-      window.location.href = '/checkout';
-    }
-  });</div>
+        <strong>USDconfig-Pattern:</strong> Produktauswahl passiert vor dem AR-Launch.
+        Je nach Auswahl wird die passende USDZ geladen \u2014 mit Apple Pay Banner im AR-Viewer.
+        So funktionieren Konfigurator UND Apple Pay zusammen.
     </div>
     <div class="footer">
-        <p>viSales GmbH \u00b7 <a href="https://visales.de">visales.de</a> \u00b7 OpenUSD + AR Quick Look Demo</p>
+        <p>viSales GmbH \u00b7 <a href="https://visales.de">visales.de</a> \u00b7 OpenUSD + AR Quick Look</p>
     </div>
     <script>
-        const arLink = document.querySelector('a[rel="ar"]');
-        if (arLink) {
-            arLink.addEventListener('message', function(event) {
-                if (event.data === '_apple_ar_quicklook_button_tapped') {
-                    console.log('Apple Pay Button tapped in AR Quick Look');
-                    alert('Apple Pay Button getippt! Hier w\u00fcrde der Checkout starten.');
-                }
-            }, false);
+        let currentColor = 'red';
+        const config = {
+            red:   { usdz: 'cube_red.usdz',   label: 'Rot',   title: '3D Cube Rot',   subtitle: 'Farbe: Rot' },
+            green: { usdz: 'cube_green.usdz', label: 'Gr\u00fcn',  title: '3D Cube Gr\u00fcn',  subtitle: 'Farbe: Gr\u00fcn' }
+        };
+        function selectColor(btn) {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentColor = btn.dataset.color;
+            document.getElementById('previewCube').className = 'preview-cube ' + currentColor;
+            document.getElementById('selectedLabel').textContent = config[currentColor].label;
+            updateARLink();
         }
+        function updateARLink() {
+            const cfg = config[currentColor];
+            const params = [
+                'applePayButtonType=plain',
+                'checkoutTitle=' + encodeURIComponent(cfg.title),
+                'checkoutSubtitle=' + encodeURIComponent(cfg.subtitle),
+                'price=' + encodeURIComponent('\u20ac9,99')
+            ].join('&');
+            document.getElementById('arLink').href = cfg.usdz + '#' + params;
+        }
+        function openAR() { document.getElementById('arLink').click(); }
+        document.getElementById('arLink').addEventListener('message', function(e) {
+            if (e.data === '_apple_ar_quicklook_button_tapped') {
+                alert('Apple Pay f\u00fcr ' + config[currentColor].label + '! Checkout starten...');
+            }
+        }, false);
+        updateARLink();
     </script>
 </body>
 </html>
