@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USDconfig — OpenUSD-Produktkonfigurator für B2B-Vertrieb</title>
+<meta name="description" content="USDconfig macht Produktvarianten in AR erlebbar — aus einer USDZ-Masterdatei, ohne App, ohne Streaming, ohne laufende Gebühren. Von viSales GmbH, Bochum.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="USDconfig — OpenUSD-Produktkonfigurator für B2B-Vertrieb">
+<meta property="og:description" content="Eine USDZ-Masterdatei. Alle Kanäle. Ohne App. Ohne Streaming. Ohne Vendor Lock-in.">
+<meta property="og:type" content="website">
+
+<style>
+/* === viSales Warm Tech — Tokens (canonical aus visales-warm-tech.design.md) === */
+:root {
+  --primary:          #F97316;
+  --primary-dark:     #C2410C;
+  --accent:           #0891B2;
+  --accent-dark:      #065F73;
+
+  --text-heading:     #1A1A1A;
+  --text-body:        #555555;
+  --text-description: #888888;
+  --text-secondary:   #999999;
+  --text-tertiary:    #BBBBBB;
+  --text-muted:       #AAAAAA;
+
+  --bg-canvas:        #FFFFFF;
+  --bg-neutral:       #FAFAFA;
+  --bg-primary-tint:  #FFF8F4;
+  --bg-accent-tint:   #F0FDFE;
+
+  --border-card:      #F0F0F0;
+  --border-inner:     #E5E5E5;
+  --border-primary:   #FBD5BC;
+  --border-accent:    #A5F0F9;
+  --border-muted:     #E0E0E0;
+
+  --font-stack: -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+
+  --content-max: 920px;
+  --gutter: 24px;
+
+  --shadow-card: 0 2px 5px rgba(0,0,0,0.07);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-canvas);
+  color: var(--text-body);
+  font-family: var(--font-stack);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === Container === */
+.wrap {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* === Header === */
+.site-header {
+  border-bottom: 1px solid var(--border-card);
+  background: var(--bg-canvas);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.site-header-inner {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 14px var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.brand {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.brand-usd  { color: var(--text-heading); }
+.brand-conf { color: var(--primary-dark); }
+.site-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.site-nav a:not(.btn) {
+  font-size: 13px;
+  color: var(--text-body);
+  text-decoration: none;
+}
+.site-nav a:not(.btn):hover { color: var(--primary-dark); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-stack);
+}
+.btn-primary  { background: var(--primary-dark); color: var(--bg-canvas); }
+.btn-primary:hover  { background: var(--primary); }
+.btn-accent   { background: var(--accent-dark);  color: var(--bg-canvas); }
+.btn-accent:hover   { background: var(--accent); }
+.btn-ghost    { color: var(--primary-dark); background: transparent; padding: 9px 0; }
+.btn-ghost:hover    { color: var(--primary); }
+
+@media (max-width: 720px) {
+  .site-nav { gap: 14px; }
+  .site-nav a:not(.btn) { display: none; }
+}
+
+/* === Sections === */
+section { padding: 64px 0; }
+section + section { border-top: 1px solid var(--border-card); }
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin-bottom: 18px;
+}
+.eyebrow-primary { color: var(--primary-dark); }
+
+h1, h2, h3, h4 {
+  color: var(--text-heading);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+h1 { font-size: 38px; margin-bottom: 20px; }
+h2 { font-size: 26px; margin-bottom: 16px; }
+h3 { font-size: 17px; margin-bottom: 8px; }
+h4 { font-size: 14px; }
+
+.lead {
+  font-size: 16px;
+  color: var(--text-body);
+  max-width: 640px;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  h1 { font-size: 30px; }
+  h2 { font-size: 22px; }
+  section { padding: 48px 0; }
+}
+
+/* === Hero === */
+.hero { padding: 72px 0 56px; }
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.hero-meta {
+  margin-top: 36px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-description);
+}
+.hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.hero-meta-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* === Card === */
+.card {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+.card-primary { border-top: 4px solid var(--primary-dark); }
+.card-accent  { border-top: 4px solid var(--accent); }
+
+.card-grid   { display: grid; grid-template-columns: 1fr 1fr;    gap: 20px; }
+.card-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+@media (max-width: 760px) {
+  .card-grid, .card-grid-3 { grid-template-columns: 1fr; }
+}
+
+.step {
+  width: 28px; height: 28px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--bg-canvas);
+  margin-bottom: 14px;
+}
+.step-primary { background: var(--primary-dark); }
+.step-accent  { background: var(--accent); }
+
+.card p { font-size: 13px; color: var(--text-body); line-height: 1.6; }
+
+.sub-section {
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-body);
+  line-height: 1.55;
+}
+.sub-section-neutral { background: var(--bg-neutral);       border: 1px solid var(--border-inner); }
+.sub-section-primary { background: var(--bg-primary-tint);  border: 1px solid var(--border-primary); }
+.sub-section-accent  { background: var(--bg-accent-tint);   border: 1px solid var(--border-accent); }
+.sub-section strong  { color: var(--text-heading); font-weight: 700; }
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+  display: block;
+}
+.label-primary { color: var(--primary-dark); }
+.label-accent  { color: var(--accent-dark); }
+
+/* === Demo Figures === */
+.demo-figure { margin: 0; }
+.demo-figure img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.demo-figure figcaption {
+  margin-top: 12px;
+  font-size: 11px; color: var(--text-description);
+  text-align: center; line-height: 1.5;
+}
+
+.placeholder-stack {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+}
+@media (max-width: 760px) { .placeholder-stack { grid-template-columns: 1fr; } }
+
+/* Demo iframe */
+.demo-embed {
+  margin-top: 36px;
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.demo-embed-bar {
+  background: var(--bg-neutral);
+  border-bottom: 1px solid var(--border-inner);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; color: var(--text-description);
+}
+.demo-embed-dots { display: flex; gap: 5px; }
+.demo-embed-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--border-inner); }
+.demo-embed-url {
+  flex: 1; background: var(--bg-canvas);
+  border: 1px solid var(--border-inner);
+  border-radius: 5px; padding: 4px 10px;
+}
+.demo-embed-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-dark); background: var(--bg-accent-tint);
+  border: 1px solid var(--border-accent);
+  padding: 3px 8px; border-radius: 100px;
+}
+.demo-embed-frame { height: 500px; }
+.demo-embed-frame iframe { width: 100%; height: 100%; display: block; border: none; }
+.demo-sub-links {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  margin-top: 16px; font-size: 13px;
+}
+.demo-sub-links a { color: var(--accent-dark); text-decoration: none; font-weight: 500; }
+.demo-sub-links a:hover { color: var(--accent); }
+
+/* === Steps Grid === */
+.steps-grid-4 {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 28px;
+}
+@media (max-width: 760px) { .steps-grid-4 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .steps-grid-4 { grid-template-columns: 1fr; } }
+.step-tile {
+  background: var(--bg-neutral);
+  border: 1px solid var(--border-inner);
+  border-radius: 8px; padding: 16px 14px;
+}
+.step-tile .step { margin-bottom: 12px; }
+.step-tile h4 { font-size: 13px; margin: 0 0 6px; color: var(--text-heading); }
+.step-tile p  { font-size: 12px; color: var(--text-body); line-height: 1.55; margin: 0; }
+
+/* === Inline Definition === */
+.inline-def {
+  margin-top: 28px;
+  background: var(--bg-neutral);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px; padding: 18px 20px;
+}
+.inline-def strong { color: var(--text-heading); display: block; margin-bottom: 6px; font-size: 13px; }
+.inline-def p { font-size: 13px; color: var(--text-body); line-height: 1.6; margin: 0; }
+.inline-def a { color: var(--primary-dark); font-weight: 700; text-decoration: none; }
+
+/* === Privacy Grid === */
+.privacy-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 28px;
+}
+@media (max-width: 760px) { .privacy-grid { grid-template-columns: 1fr; } }
+.privacy-tile {
+  background: var(--bg-neutral);
+  border: 1px solid var(--border-inner);
+  border-radius: 8px; padding: 24px 22px;
+}
+.privacy-tile-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-muted);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary-dark); margin-bottom: 16px;
+}
+.privacy-tile h4 { font-size: 14px; margin: 0 0 8px; }
+.privacy-tile p  { font-size: 12px; color: var(--text-body); line-height: 1.6; margin: 0; }
+
+/* === QA Rules Grid === */
+.qa-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px;
+}
+@media (max-width: 760px) { .qa-grid { grid-template-columns: 1fr 1fr; } }
+.qa-tile {
+  background: var(--bg-neutral);
+  border: 1px solid var(--border-inner);
+  border-left: 3px solid var(--primary-dark);
+  border-radius: 6px; padding: 12px 14px;
+}
+.qa-tile h4 { font-size: 12px; font-weight: 700; color: var(--text-heading); margin: 0 0 4px; }
+.qa-tile p  { font-size: 11px; color: var(--text-body); margin: 0; line-height: 1.5; }
+
+/* === FAQ === */
+.faq-item { border-bottom: 1px solid var(--border-inner); }
+.faq-item:first-child { border-top: 1px solid var(--border-inner); }
+.faq-q {
+  width: 100%;
+  display: flex; justify-content: space-between; align-items: center;
+  background: none; border: none;
+  padding: 18px 0; text-align: left;
+  font-family: var(--font-stack);
+  font-size: 14px; font-weight: 700;
+  color: var(--text-heading); cursor: pointer;
+}
+.faq-q-icon {
+  flex-shrink: 0; margin-left: 16px;
+  color: var(--primary-dark); transition: transform 0.2s;
+}
+.faq-item[data-open="true"] .faq-q-icon { transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.faq-item[data-open="true"] .faq-a { max-height: 400px; }
+.faq-a-inner {
+  padding: 0 0 22px;
+  font-size: 13px; color: var(--text-body);
+  line-height: 1.65; max-width: 640px;
+}
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: var(--bg-primary-tint);
+  padding: 1px 5px; border-radius: 3px;
+  color: var(--primary-dark);
+}
+
+/* === CTA Block === */
+.cta-block {
+  background: var(--bg-primary-tint);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px; padding: 36px 32px;
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 28px; align-items: center;
+}
+.cta-block h2 { margin-bottom: 8px; }
+.cta-block p  { font-size: 13px; color: var(--text-body); max-width: 540px; }
+.cta-block .btn { justify-self: end; }
+@media (max-width: 760px) {
+  .cta-block { grid-template-columns: 1fr; padding: 28px 24px; }
+  .cta-block .btn { justify-self: center; }
+}
+
+/* === Footer === */
+.site-footer {
+  background: var(--bg-canvas);
+  border-top: 1px solid var(--border-card);
+  padding: 44px 0 28px;
+  font-size: 12px; color: var(--text-description);
+}
+.footer-trust {
+  text-align: center; font-size: 12px;
+  padding-bottom: 24px; margin-bottom: 28px;
+  border-bottom: 1px solid var(--border-inner);
+}
+.footer-trust a { color: var(--accent-dark); text-decoration: none; }
+.footer-trust a:hover { color: var(--accent); }
+.footer-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 32px; margin-bottom: 28px;
+}
+@media (max-width: 720px) { .footer-grid { grid-template-columns: 1fr; gap: 24px; } }
+.footer-col h4 {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-heading); margin-bottom: 12px;
+}
+.footer-col ul { list-style: none; }
+.footer-col li { margin-bottom: 12px; line-height: 1.55; }
+.footer-col li a { color: var(--text-heading); text-decoration: none; font-weight: 700; font-size: 13px; }
+.footer-col li a:hover { color: var(--primary-dark); }
+.footer-col li span { display: block; font-size: 12px; color: var(--text-description); font-weight: 400; margin-top: 2px; }
+.footer-bottom {
+  padding-top: 22px; border-top: 1px solid var(--border-inner);
+  display: flex; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-size: 11px; color: var(--text-secondary);
+}
+.footer-bottom a { color: var(--text-secondary); text-decoration: none; }
+.footer-bottom a:hover { color: var(--primary-dark); }
+.trademark {
+  margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid var(--border-inner);
+  font-size: 10px; color: var(--text-muted);
+  line-height: 1.55; max-width: 720px;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="#">USD<span class="brand-conf">config</span></a>
+    <nav class="site-nav">
+      <a href="#varianten">Varianten</a>
+      <a href="#demo">Demo</a>
+      <a href="#architektur">Architektur</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="https://kopfkinok3.github.io/USDconfig-demo-player/" target="_blank" rel="noopener">Demo öffnen</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow eyebrow-primary">USDZ-KONFIGURATOR · BROWSER · AR · KEIN APP-DOWNLOAD</div>
+    <h1>Produktvarianten erleben,<br>nicht nur lesen.</h1>
+    <p class="lead">
+      USDconfig macht konfigurierbare B2B-Produkte direkt im Browser und in Augmented Reality erlebbar — aus einer einzigen USDZ-Masterdatei, ohne App-Installation auf Kundenseite, ohne Streaming, ohne laufende Plattformgebühren.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="https://kopfkinok3.github.io/USDconfig-demo-player/" target="_blank" rel="noopener">Demo öffnen</a>
+      <a class="btn btn-ghost" href="#demo">↓ So sieht das aus</a>
+    </div>
+    <div class="hero-meta">
+      <span><span class="hero-meta-dot"></span> Läuft lokal im Browser — kein Streaming</span>
+      <span><span class="hero-meta-dot"></span> Kein App-Download auf Kundenseite</span>
+      <span><span class="hero-meta-dot"></span> Keine laufenden Gebühren nach Setup</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========== VARIANTEN ========== -->
+<section id="varianten">
+  <div class="wrap">
+    <div class="eyebrow eyebrow-primary">ZWEI VARIANTENTYPEN</div>
+    <h2>Strukturvarianten und Materialvarianten. Beides aus einer Datei.</h2>
+    <p class="lead">
+      Das Kernproblem klassischer Konfiguratoren: eine Variantenkombination, eine Datei — bei 40 Kombinationen sind das 40 Dateien. USDconfig trennt strukturelle von materiellen Varianten und hält die Dateianzahl beherrschbar.
+    </p>
+
+    <div class="card-grid">
+
+      <article class="card card-primary">
+        <span class="step step-primary">1</span>
+        <span class="label label-primary">STRUKTURVARIANTEN</span>
+        <h3>Verschiedene Geometrien — separate Layer</h3>
+        <p>
+          Maschinengrößen, Ausstattungsstufen, verschiedene Sockeltypen oder Armlehnenformen: Strukturvarianten beschreiben unterschiedliche Geometrien. In USDconfig werden sie als separate USD-Layer geführt — überschaubar in der Anzahl (typisch 4–12), nicht als Dateiexplosion.
+        </p>
+        <div class="sub-section sub-section-neutral">
+          <strong>Beispiel Bürostuhl:</strong> 3 Gestell-Typen × 2 Armlehnen-Varianten = 6 Strukturdateien. Fertig.
+        </div>
+      </article>
+
+      <article class="card card-accent">
+        <span class="step step-accent">2</span>
+        <span class="label label-accent">MATERIALVARIANTEN</span>
+        <h3>Farben & Oberflächen — live im Modell</h3>
+        <p>
+          Farben, Bezugsstoffe, Oberflächen und Texturen wechseln über <code>KHR_materials_variants</code> direkt im laufenden 3D-Modell — ohne Datei-Reload, ohne neue Datei. Beliebig viele Farboptionen ohne zusätzlichen Speicherbedarf.
+        </p>
+        <div class="sub-section sub-section-accent">
+          <strong>Beispiel Bürostuhl:</strong> 39 Bezugsfarben — eine einzige GLB-Datei pro Strukturvariante. Kein Mehraufwand.
+        </div>
+      </article>
+
+    </div>
+
+    <div class="inline-def">
+      <strong>Warum das entscheidend ist</strong>
+      <p>
+        Klassische Konfiguratoren erzeugen eine Datei pro Kombination: 3 Gestelle × 2 Armlehnen × 39 Farben = 234 Dateien. USDconfig löst das: 6 Strukturdateien, Farben im Modell. <strong>Keine kombinatorische Explosion. Keine 234 Einzeldateien.</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== DEMO ========== -->
+<section id="demo">
+  <div class="wrap">
+    <div class="eyebrow">DEMO</div>
+    <h2>So sieht USDconfig aus.</h2>
+    <p class="lead">
+      Vitra ID Chair — Konzeptansicht. 39 Bezugfarben, alle Strukturvarianten, vollständige AR-Übergabe auf iPhone und iPad. Alle Assets sind live.
+    </p>
+
+    <div class="demo-embed">
+      <div class="demo-embed-bar">
+        <div class="demo-embed-dots"><span></span><span></span><span></span></div>
+        <div class="demo-embed-url">kopfkinok3.github.io/USDconfig-demo-player/</div>
+        <span class="demo-embed-badge">Live</span>
+      </div>
+      <div class="demo-embed-frame">
+        <iframe
+          src="https://kopfkinok3.github.io/USDconfig-demo-player/"
+          allow="xr-spatial-tracking; camera"
+          allowfullscreen loading="lazy"
+          title="USDconfig Demo — Vitra ID Chair">
+        </iframe>
+      </div>
+    </div>
+
+    <div class="demo-sub-links">
+      <a href="https://kopfkinok3.github.io/USDconfig-demo-player/wizard.html" target="_blank" rel="noopener">↗ Step-by-Step Wizard</a>
+      <a href="https://kopfkinok3.github.io/USDconfig-demo-player/apple-pay-cube/" target="_blank" rel="noopener">↗ Technik-Demo mit Apple Pay in AR</a>
+    </div>
+    <p style="font-size:11px; color:var(--text-muted); margin-top:10px; line-height:1.5;">
+      Disclaimer: Die Demo-Assets basieren auf der Vitra-Website und wurden für Testzwecke optimiert. Kein kommerzieller Einsatz. Vitra ist eine eingetragene Marke der Vitra AG.
+    </p>
+  </div>
+</section>
+
+<!-- ========== KANÄLE ========== -->
+<section id="architektur">
+  <div class="wrap">
+    <div class="eyebrow eyebrow-primary">KANÄLE</div>
+    <h2>Was USDconfig konkret liefert — auf welchem Gerät.</h2>
+    <p class="lead">
+      Ein Player, der den Browser-Pfad automatisch erkennt: Safari bekommt USDZ mit vollem OpenUSD-Fidelity über den <code>&lt;model&gt;</code>-Tag, alle anderen Browser bekommen GLB via model-viewer. Die AR-Übergabe funktioniert auf beiden Plattformen aus einem Button.
+    </p>
+
+    <div class="card-grid-3">
+
+      <article class="card card-primary">
+        <span class="step step-primary">1</span>
+        <span class="label label-primary">BROWSER</span>
+        <h3>Safari — nativ. Alle anderen — Fallback.</h3>
+        <p>
+          Safari (macOS, iOS, visionOS): <code>&lt;model&gt;</code>-Tag mit USDZ und vollem OpenUSD-Fidelity — Variant Sets direkt aus dem USD-Schema, keine Konvertierungsverluste. Chrome, Firefox, Edge: model-viewer mit GLB und KHR_materials_variants. Beide Pfade, ein Player, kein Reload.
+        </p>
+      </article>
+
+      <article class="card card-accent">
+        <span class="step step-accent">2</span>
+        <span class="label label-accent">AUGMENTED REALITY</span>
+        <h3>iPhone & iPad via AR Quick Look. Android via Scene Viewer.</h3>
+        <p>
+          WebAR startet direkt aus dem Browser — kein App-Download, keine IT-Freigabe, keine Registrierung. Der Kunde sieht das konfigurierte Produkt sofort im eigenen Raum, in Originalgröße. iOS: AR Quick Look. Android: Google Scene Viewer, auf jedem modernen Android vorinstalliert.
+        </p>
+      </article>
+
+      <article class="card card-primary">
+        <span class="step step-primary">3</span>
+        <span class="label label-primary">WEITERE KONTEXTE</span>
+        <h3>Vision Pro · Keynote · Messe.</h3>
+        <p>
+          Apple Vision Pro: lokales Rendering über den <code>&lt;model&gt;</code>-Tag, ohne Streaming, ohne Latenz. Keynote und Freeform: dieselbe USDZ-Datei direkt in Apple-Präsentationen. Messe und Außendienst: offline auf dem iPad nutzbar, keine Internetverbindung nötig.
+        </p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== WIE ES FUNKTIONIERT ========== -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow eyebrow-primary">ABLAUF</div>
+    <h2>Wie ein USDconfig-Projekt entsteht — vier Phasen.</h2>
+    <p class="lead">
+      Kein SaaS-Onboarding, keine Plattformabhängigkeit. USDconfig wird projektbasiert eingerichtet — und läuft danach beim Kunden ohne weitere Gebühren.
+    </p>
+
+    <div class="steps-grid-4">
+      <div class="step-tile">
+        <span class="step step-primary">1</span>
+        <h4>3D-Datei kommt rein</h4>
+        <p>CAD, GLB, FBX, OBJ oder bereits USDZ. Der USDconfig-Analyzer liest die Datei und identifiziert Varianten, Materialien und Abhängigkeiten.</p>
+      </div>
+      <div class="step-tile">
+        <span class="step step-primary">2</span>
+        <h4>USDZ-Masterdatei aufbauen</h4>
+        <p>viSales baut Strukturvarianten und Materialvarianten sauber auf. Optimiert für mobile Geräte — auch große Industriedateien ohne Qualitätsverlust.</p>
+      </div>
+      <div class="step-tile">
+        <span class="step step-primary">3</span>
+        <h4>Player installieren</h4>
+        <p>Der Web-Player wird auf der Website des Kunden gehostet. iframe-Snippet für CMS-Integration. Danach: keine laufenden Gebühren gegenüber viSales.</p>
+      </div>
+      <div class="step-tile">
+        <span class="step step-primary">4</span>
+        <h4>Im Vertrieb nutzen</h4>
+        <p>Browser, AR Quick Look, Messe, Keynote, Apple Vision Pro. Das Produkt zeigt sich selbst — ohne App-Download auf Kundenseite, ohne Erklärung nötig.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== KEIN STREAMING ========== -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">ARCHITEKTUR</div>
+    <h2>Kein Streaming. Keine Cloud. Keine Abhängigkeit.</h2>
+    <p class="lead">
+      USDconfig wurde so gebaut, dass nach dem Setup keine Infrastruktur-Abhängigkeit entsteht — nicht versprochen, sondern architektonisch so gebaut.
+    </p>
+
+    <div class="privacy-grid">
+
+      <div class="privacy-tile">
+        <div class="privacy-tile-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 10a4 4 0 010 8H6a4 4 0 01-1.5-7.7"/><path d="M3 3l18 18"/>
+          </svg>
+        </div>
+        <h4>Kein Streaming-Server</h4>
+        <p>
+          Der Player lädt die USDZ/GLB-Datei direkt im Browser — kein Rendering-Server, keine Cloud-Infrastruktur, keine Latenz. Auch in Werknetzen mit eingeschränktem Internetzugang nutzbar.
+        </p>
+      </div>
+
+      <div class="privacy-tile">
+        <div class="privacy-tile-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>
+          </svg>
+        </div>
+        <h4>Keine App-Installation</h4>
+        <p>
+          AR Quick Look läuft nativ auf iPhone und iPad — direkt aus dem Browser. Kein App Store, keine IT-Freigabe, keine Registrierung auf Kundenseite. Der Kunde öffnet einen Link.
+        </p>
+      </div>
+
+      <div class="privacy-tile">
+        <div class="privacy-tile-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+        </div>
+        <h4>Keine laufenden Gebühren</h4>
+        <p>
+          Nach Setup und Hosting beim Kunden entstehen keine monatlichen Lizenzkosten gegenüber viSales. Kein Abo-Modell, kein Vendor Lock-in. Der Player gehört dem Kunden.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== LEBENSZYKLUS ========== -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">EINORDNUNG</div>
+    <h2>USDconfig im Produkt-Lebenszyklus.</h2>
+    <p class="lead">
+      Eine USDZ-Masterdatei entsteht einmal — und wird dann in allen Vertriebskontexten genutzt. USDconfig ist der Punkt, an dem sie zum Konfigurator wird.
+    </p>
+
+    <div class="card-grid-3">
+
+      <article class="card card-primary">
+        <span class="step step-primary">1</span>
+        <span class="label label-primary">PHASE 1 · DATEI</span>
+        <h3>Aus CAD & 3D-Workflow</h3>
+        <p>
+          Aus CAD-Systemen (STEP, SolidWorks, CATIA) oder 3D-Workflows (NVIDIA Omniverse via <a href="#stack-usdbridge" style="color:var(--accent-dark);font-weight:700;text-decoration:none;">USDbridge</a>) entsteht die USDZ-Masterdatei — der vollständige Stand mit allen Varianten und Materialien.
+        </p>
+      </article>
+
+      <article class="card card-primary">
+        <span class="step step-primary">2</span>
+        <span class="label label-primary">PHASE 2 · KONFIGURATION</span>
+        <h3>USDconfig-Analyzer & Player</h3>
+        <p>
+          Der USDconfig-Analyzer liest die Masterdatei und strukturiert Varianten und Materialien. Der Player macht sie im Browser und in AR konfigurierbar — ohne neue Datei pro Variantenkombination.
+        </p>
+      </article>
+
+      <article class="card card-accent">
+        <span class="step step-accent">3</span>
+        <span class="label label-accent">PHASE 3 · VERTRIEB</span>
+        <h3>Browser · AR · Messe · Keynote</h3>
+        <p>
+          Dieselbe Datei läuft ohne App auf iPhone, iPad und Apple Vision Pro, im Browser auf Desktop und Mobile, auf der Website und am Messestand. Der Kunde erlebt das Produkt sofort — ohne Erklärung, ohne Vorbereitungszeit. Das senkt die TTU direkt: <strong>Gespräche kürzer, Entscheidungen klarer.</strong>
+        </p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== VISALES STACK ========== -->
+<section id="visales-stack">
+  <div class="wrap">
+    <div class="eyebrow">VISALES 3D-STACK</div>
+    <h2>Mehr aus dem viSales 3D-Stack.</h2>
+    <p class="lead">
+      USDconfig ist die Konfigurations- und Präsentationsschicht. Drumherum gibt es weitere viSales-Werkzeuge im selben Pipeline-Bild.
+    </p>
+
+    <div style="margin-top: 28px;">
+
+      <div class="faq-item" id="stack-usdseal">
+        <button class="faq-q" aria-expanded="false">
+          <span>USDseal Inspector — USDZ-Dateien prüfen, bevor sie rausgehen</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            <p style="margin-bottom:12px;">Browser-Tool, das jede USDZ-Datei lokal liest — ohne Upload. AR Quick Look-Diagnose (21 Regeln, 7 Kategorien), Asset-Inventar, Textur-Analyse, Geometrie-Stats. Bei USDseal-gestempelten Dateien kommen Provenance-, Lineage- und Manipulations-Check dazu. Open Source, Apache-2.0.</p>
+            <p style="margin:0; font-size:12px; color:var(--text-description);">
+              <a href="https://kopfkinok3.github.io/usdseal-inspector/" target="_blank" rel="noopener" style="color:var(--primary-dark);font-weight:700;text-decoration:none;">Inspector öffnen →</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" id="stack-usdbridge">
+        <button class="faq-q" aria-expanded="false">
+          <span>USDbridge — Brücke von NVIDIA Omniverse zu Apple-Geräten</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            <p style="margin-bottom:12px;">Passt USD-Specs aus NVIDIA Omniverse so an, dass die Datei in AR Quick Look (iPhone, iPad) und auf Apple Vision Pro läuft — reine Spec-Anpassung, keine Polygon-Reduktion, kein Material-Umbau. Damit kommen Engineering-Assets unverändert auf Vertriebs-Endgeräten an.</p>
+            <p style="margin:0; font-size:12px; color:var(--text-description);">
+              <a href="https://visales.de/usdbridge/" target="_blank" rel="noopener" style="color:var(--primary-dark);font-weight:700;text-decoration:none;">Mehr zu USDbridge →</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" id="stack-usdseal-cli">
+        <button class="faq-q" aria-expanded="false">
+          <span>USDseal CLI — Provenance und Signatur für USDZ-Dateien</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            <p style="margin-bottom:12px;">CLI mit <code>init</code>, <code>sign</code>, <code>verify</code>, <code>inspect</code>, <code>export</code>, <code>merge</code>. Stempelt Asset-Quellen und Lizenz-Information kryptografisch in die USDZ-Datei — Ed25519 / COSE_Sign1, C2PA-kompatibel. Inspector ist die Browser-Seite davon.</p>
+            <p style="margin:0; font-size:12px; color:var(--text-description);">Fragen? <a href="https://www.linkedin.com/in/gerhardschroeder/" target="_blank" rel="noopener" style="color:var(--primary-dark);font-weight:700;text-decoration:none;">Gerhard auf LinkedIn →</a></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== FAQ ========== -->
+<section id="faq">
+  <div class="wrap">
+    <div class="eyebrow eyebrow-primary">HÄUFIGE FRAGEN</div>
+    <h2>Was Entscheider und Vertriebsleiter meist fragen.</h2>
+
+    <div style="margin-top: 28px;">
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Brauchen unsere Kunden eine App, um die AR-Funktion zu nutzen?</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            Nein. Die AR-Ansicht läuft über Apple Quick Look direkt auf iPhone und iPad — kein Download, keine IT-Freigabe, keine Registrierung. Der Kunde öffnet einen Link und kann das Produkt sofort im eigenen Raum platzieren.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Wie viele Varianten-Kombinationen sind realistisch umsetzbar?</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            USDconfig trennt strukturelle Varianten (Geometrieänderungen) von materiellen Varianten (Farben, Texturen). Strukturvarianten erzeugen separate Dateien — realistisch sind 4–12 Kombinationen. Materialvarianten laufen über <code>KHR_materials_variants</code> im GLB und verursachen keine zusätzlichen Dateien. Beispiel Bürostuhl: 3 Armlehnen × 2 Gestell = 6 GLB-Dateien, dazu beliebig viele Bezugsfarben ohne Mehraufwand.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Können wir USDconfig auf unserer eigenen Website einbinden?</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            Ja. Der Player wird auf Wunsch auf der Website des Kunden installiert und mit den bereitgestellten USDZ/GLB-Dateien ausgeliefert. Per <code>&lt;iframe&gt;</code>-Snippet in Ghost, WordPress, Webflow oder jedes andere CMS einbindbar. Danach läuft die Lösung ohne monatliche Gebühren gegenüber viSales.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Was brauchen wir, um loszulegen — reicht eine vorhandene 3D-Datei?</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            Meistens ja. Wir arbeiten uns von Ihrer vorhandenen Datei (CAD, GLB, FBX, OBJ oder bereits USDZ) vor. Unterstützte Formate: STEP, SolidWorks, CATIA, GLB, FBX, OBJ, USDZ. Der einfachste Einstieg: ein konkretes Produkt, eine konkrete Variante, ein erster Test.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Was ist der Unterschied zwischen USDconfig und ConfigXR?</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            <a href="https://github.com/KopfKinoK3/ConfigXRBuilder" target="_blank" rel="noopener" style="color:var(--primary-dark);font-weight:700;text-decoration:none;">ConfigXR</a> war ein frühes System für AR-Konfigurationslogiken von viSales (ab 2021), das 2023 als Open Source gestellt wurde. USDconfig ist kein direkter Nachfolger, aber trägt die Erkenntnisse daraus weiter — auf Basis heutiger Standards (OpenUSD, <code>KHR_materials_variants</code>, <code>&lt;model&gt;</code>-Tag) und mit dem neuen USDconfig-Analyzer in v1.1.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Für welche Branchen ist USDconfig geeignet?</span>
+          <svg class="faq-q-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner">
+            USDconfig ist für B2B-Unternehmen mit konfigurierbaren, erklärungsbedürftigen Produkten konzipiert: Maschinenbau, Anlagenbau, Möbelindustrie, Elektrische Ausrüstungen, Sensorik/Messtechnik und Aerospace — überall dort, wo ein Vertrieb Produktvarianten zeigen muss, aber keine eigene App entwickeln will und kein AR-App-Download zumutbar ist.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== CTA ========== -->
+<section>
+  <div class="wrap">
+    <div class="cta-block">
+      <div>
+        <div class="eyebrow eyebrow-primary">EINORDNUNGSGESPRÄCH</div>
+        <h2>30 Minuten. Ihr Produkt. Wir schauen gemeinsam, was möglich ist.</h2>
+        <p>
+          Schicken Sie uns eine 3D-Datei oder beschreiben Sie, welche Varianten Sie heute nicht direkt zeigen können. Wir schauen gemeinsam, ob und wie USDconfig hilft — ohne Pitch, ohne Vorbereitungspflicht. RENZ hat mit einem Stuhl angefangen.
+        </p>
+      </div>
+      <a class="btn btn-primary" href="https://visales.de/kontakt/" target="_blank" rel="noopener noreferrer">Gespräch buchen</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="site-footer">
+  <div class="wrap">
+
+    <div class="footer-trust">
+      viSales GmbH ist Mitglied der <a href="https://aousd.org/" target="_blank" rel="noopener">Alliance for OpenUSD</a>
+    </div>
+
+    <div class="footer-grid">
+
+      <div class="footer-col">
+        <h4>Mehr von viSales</h4>
+        <ul>
+          <li>
+            <a href="https://kopfkinok3.github.io/usdseal-inspector/landingpage/deutsch/" target="_blank" rel="noopener">USDseal Inspector</a>
+            <span>USDZ-Dateien prüfen, bevor sie rausgehen — Browser-Tool, kein Upload.</span>
+          </li>
+          <li>
+            <a href="https://visales.de/usdbridge/" target="_blank" rel="noopener">USDbridge</a>
+            <span>Brücke von NVIDIA Omniverse zu Apple-Geräten — Spec-Anpassung für AR Quick Look.</span>
+          </li>
+          <li>
+            <a href="https://visales.de/renz-augmented-reality-produktkonfigurator-fallbeispiel/" target="_blank" rel="noopener">Fallbeispiel RENZ</a>
+            <span>Wie ein Möbelhersteller mit einer USDZ-Datei seinen Musterkoffer ersetzt hat.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>USDconfig</h4>
+        <ul>
+          <li><a href="https://kopfkinok3.github.io/USDconfig-demo-player/" target="_blank" rel="noopener">Demo öffnen</a></li>
+          <li>
+            <a href="https://visales.de/usdconfig-demo/" target="_blank" rel="noopener">v1.1 Dokumentation</a>
+          </li>
+          <li><a href="#faq">Häufige Fragen</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>viSales</h4>
+        <ul>
+          <li><a href="https://www.linkedin.com/in/gerhardschroeder/" target="_blank" rel="noopener noreferrer">Gerhard auf LinkedIn</a></li>
+          <li><a href="https://visales.de/impressum/" target="_blank" rel="noopener">Impressum</a></li>
+          <li><a href="https://visales.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 viSales GmbH · Bochum · Gespräche kürzer, Entscheidungen klarer, Abschlüsse planbarer.</div>
+      <div>Demo-Player: Apache-2.0</div>
+    </div>
+
+    <div class="trademark">
+      USD and USDZ are trademarks of Pixar. OpenUSD is an open standard maintained by the Alliance for OpenUSD (AOUSD). viSales GmbH is a member of the AOUSD. USDconfig is an independent tool developed by viSales GmbH and is not affiliated with or endorsed by Pixar or the AOUSD. KHR_materials_variants is part of the glTF 2.0 specification — Khronos Group.
+    </div>
+
+  </div>
+</footer>
+
+<script>
+  // FAQ-Toggle
+  document.querySelectorAll('.faq-q').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = btn.closest('.faq-item');
+      var open = item.getAttribute('data-open') === 'true';
+      item.setAttribute('data-open', open ? 'false' : 'true');
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+  });
+</script>
+
+</body>
+</html>
