@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+
+# Secrets / Local
+.env
+.env.local
+
+# Build artifacts
+output/
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
