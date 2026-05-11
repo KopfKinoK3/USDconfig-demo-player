@@ -283,10 +283,7 @@ function resolveGlb() {
   return `assets/product-${s}-${l}-${a}.glb`;
 }
 function resolveUsdz() {
-  const s = state.Sitzform.toLowerCase();
-  const l = state.Lehne.toLowerCase();
-  const a = state.Armlehnen.toLowerCase().replace(/ /g,'_');
-  return `assets/product-${s}-${l}-${a}.usdz`;
+  return 'assets/chair-master.usdz';
 }
 
 /* ── MODEL VIEWER ── */

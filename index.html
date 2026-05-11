@@ -593,9 +593,9 @@ modelTag.style.display = 'none';
 /* Zeige Engine-Badge im Header */
 (function showEngineBadge() {
   const isCyan = IS_SAFARI;
-  const badgeText = !IS_SAFARI ? 'model-viewer · WebGL'
-                  : IS_IOS    ? 'AR Quick Look · USDZ'
-                  :              'Safari · native USD';
+  const badgeText = IS_IOS                      ? 'AR Quick Look · USDZ'
+                  : (IS_SAFARI && USE_MODEL_TAG) ? 'Safari · native USD'
+                  :                               'model-viewer · WebGL';
   const badge = document.createElement('div');
   badge.style.cssText = `
     position:absolute; top:10px; right:12px; z-index:20;
