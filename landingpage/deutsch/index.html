@@ -384,7 +384,7 @@ h4 { font-size: 14px; }
 }
 .faq-item[data-open="true"] .faq-q-icon { transform: rotate(45deg); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
-.faq-item[data-open="true"] .faq-a { max-height: 400px; }
+.faq-item[data-open="true"] .faq-a { max-height: 1400px; }
 .faq-a-inner {
   padding: 0 0 22px;
   font-size: 13px; color: var(--text-body);
@@ -458,6 +458,23 @@ code {
   font-size: 10px; color: var(--text-muted);
   line-height: 1.55; max-width: 720px;
 }
+
+/* Embed-Snippet im FAQ */
+.snippet-lead { margin: 14px 0 8px; font-size: 12.5px; color: var(--text-body); }
+.snippet {
+  background: var(--bg-neutral);
+  border: 1px solid var(--border-inner);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px; line-height: 1.6;
+  color: var(--text-heading);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.snippet code { background: none; padding: 0; color: inherit; font-size: inherit; }
+.snippet-note { margin-top: 10px; font-size: 12px; color: var(--text-description); }
 </style>
 </head>
 <body>
@@ -560,7 +577,7 @@ code {
       <div class="demo-embed-frame">
         <iframe
           src="https://kopfkinok3.github.io/USDconfig-demo-player/"
-          allow="xr-spatial-tracking; camera"
+          allow="camera; xr-spatial-tracking; fullscreen; accelerometer; gyroscope; web-share; clipboard-write"
           allowfullscreen loading="lazy"
           title="USDconfig Demo — Vitra ID Chair">
         </iframe>
@@ -844,6 +861,18 @@ code {
         <div class="faq-a">
           <div class="faq-a-inner">
             Ja. Der Player wird auf Wunsch auf der Website des Kunden installiert und mit den bereitgestellten USDZ/GLB-Dateien ausgeliefert. Per <code>&lt;iframe&gt;</code>-Snippet in Ghost, WordPress, Webflow oder jedes andere CMS einbindbar. Danach läuft die Lösung ohne monatliche Gebühren gegenüber viSales.
+            <p class="snippet-lead">Das offizielle Snippet, mit vollständiger Berechtigungszeile:</p>
+            <pre class="snippet"><code>&lt;iframe
+  src="https://kopfkinok3.github.io/USDconfig-demo-player/"
+  allow="camera; xr-spatial-tracking; fullscreen; accelerometer; gyroscope; web-share; clipboard-write"
+  allowfullscreen
+  loading="lazy"
+  width="100%"
+  height="640"
+  style="border:0"
+  title="USDconfig Produktkonfigurator"&gt;
+&lt;/iframe&gt;</code></pre>
+            <p class="snippet-note">Die <code>allow</code>-Zeile gehört dazu. Ohne sie funktionieren AR, Teilen und Vollbild innerhalb des iframes nicht. <code>src</code> zeigt nach der Installation auf die eigene Domain.</p>
           </div>
         </div>
       </div>

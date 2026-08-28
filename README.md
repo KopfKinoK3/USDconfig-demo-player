@@ -36,6 +36,43 @@ Strukturvarianten via Template:
 ?glb=assets/product-[Sitzform]-[Lehne]-[Armlehnen].glb
 ```
 
+## Einbetten
+
+Offizielles Snippet. Die `allow`-Zeile gehoert dazu, ohne sie funktionieren AR,
+Teilen und Vollbild innerhalb des iframes nicht.
+
+```html
+<iframe
+  src="https://kopfkinok3.github.io/USDconfig-demo-player/"
+  allow="camera; xr-spatial-tracking; fullscreen; accelerometer; gyroscope; web-share; clipboard-write"
+  allowfullscreen
+  loading="lazy"
+  width="100%"
+  height="640"
+  style="border:0"
+  title="USDconfig Produktkonfigurator">
+</iframe>
+```
+
+Beim Kunden-Hosting zeigt `src` auf die eigene Domain. Fuer den Wizard statt der
+Startseite `wizard.html` anhaengen, Konfiguration per Query-String:
+`wizard.html?Sitzform=normal&Lehne=trim&Armlehnen=ohne&Bezug=Plano_67_cognac`.
+
+Zu den einzelnen Berechtigungen:
+
+| Eintrag | Wofuer |
+|---|---|
+| `camera` | AR ueber Scene Viewer und WebXR |
+| `xr-spatial-tracking` | WebXR-Sitzung im iframe |
+| `fullscreen` | Vollbild, passend zum gesetzten `allowfullscreen` |
+| `accelerometer`, `gyroscope` | Geraetelage in AR |
+| `web-share` | Teilen ueber das System-Sheet |
+| `clipboard-write` | Link in die Zwischenablage |
+
+`magnetometer` ist bewusst weggelassen, praktisch keine Browserunterstuetzung.
+Ohne diese Zeile bleibt der Konfigurator bedienbar und der Teilen-Knopf zeigt
+den Link sichtbar an, statt still zu scheitern.
+
 ## Ordnerstruktur
 
 ```
