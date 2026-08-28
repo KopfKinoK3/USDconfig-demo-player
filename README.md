@@ -86,9 +86,16 @@ den Link sichtbar an, statt still zu scheitern.
 
 ## Versionen
 
-- **v1.0** (produktiv RENZ): Player auf `media.visales.de/USDconfig/player.html`
+- **v1.0** (RENZ): Player auf `media.visales.de/USDconfig/player.html`. Stand unklar, der
+  Pfad war am 21.08.2026 nicht mehr erreichbar, siehe CHANGELOG v1.1.8.
 - **v1.1** (released 2026-03): Neuansatz, dieser Demo-Player auf GitHub Pages
-- **v1.1.1** (2026-05-10): Hygiene & Sicherheit — LICENSE, README, .gitignore, Token-Pattern
+- **v1.1.1** (2026-05-10): Hygiene & Sicherheit, LICENSE, README, .gitignore, Token-Pattern
+- **v1.1.3** (2026-05-11): Badge-Text Safari Desktop, `resolveUsdz()` im Wizard
+- **v1.1.8** (2026-08-21): Agentic-Hotfix, geteilte Links funktionieren, Teilen mit
+  Fehlerpfad, keine Vorbelegung, vollständige allow-Zeile, Embed-Snippet, Linkvorschau
+
+Die Nummern v1.1.2 sowie v1.1.4 bis v1.1.7 gehören zu anderen Sprints der produktweiten
+Zählung, siehe CHANGELOG.
 
 ## Lizenz
 
