@@ -1,0 +1,864 @@
+{
+  "product": "buerostuhl-demo",
+  "demo": true,
+  "base": {
+    "price": {
+      "mode": "listenpreis",
+      "value": 89000,
+      "unit": "EUR",
+      "scale": 2
+    },
+    "weight": {
+      "value": 14200,
+      "unit": "g"
+    },
+    "verstellbereich": {
+      "value": 80,
+      "unit": "mm"
+    }
+  },
+  "steps": [
+    {
+      "key": "Sitzform",
+      "label": "Sitzform",
+      "options": [
+        {
+          "code": "sitzform_kontur",
+          "label": "Kontur",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "sitzform_normal",
+          "label": "Normal",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": -4000,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": -600,
+              "unit": "g"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "Lehne",
+      "label": "Lehne",
+      "options": [
+        {
+          "code": "lehne_soft",
+          "label": "Soft",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "lehne_trim",
+          "label": "Trim",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 3500,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": -300,
+              "unit": "g"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "Armlehnen",
+      "label": "Armlehnen",
+      "options": [
+        {
+          "code": "armlehnen_ohne",
+          "label": "Ohne",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "armlehnen_exoliert_3d",
+          "label": "Exoliert 3D",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 9000,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 900,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "armlehnen_poliert_ring",
+          "label": "Poliert, Ring",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 18000,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 1400,
+              "unit": "g"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "Bezug",
+      "label": "Bezugfarbe",
+      "options": [
+        {
+          "code": "Plano_03_pergament_cremeweiss",
+          "label": "Pergament Cremeweiss",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_07_orange",
+          "label": "Orange",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_34_wiesengruen_forest",
+          "label": "Wiesengruen Forest",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_05_cremeweiss_sierragrau",
+          "label": "Cremeweiss Sierragrau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_11_kastanie_cognac",
+          "label": "Kastanie Cognac",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_12_lichtgrau_eisblau",
+          "label": "Lichtgrau Eisblau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_13_nero_eisblau",
+          "label": "Nero Eisblau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_15_pink_sierragrau",
+          "label": "Pink Sierragrau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_16_dunkelrot_eisblau",
+          "label": "Dunkelrot Eisblau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_17_forest_sierragrau",
+          "label": "Forest Sierragrau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_18_hellgrau_sierragrau",
+          "label": "Hellgrau Sierragrau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_19_sierragrau",
+          "label": "Sierragrau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_20_tobacco_cremeweiss",
+          "label": "Tobacco Cremeweiss",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_39_gelb_pastellgruen",
+          "label": "Gelb Pastellgruen",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_40_coconut_forest",
+          "label": "Coconut Forest",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_41_classic_green_forest",
+          "label": "Classic Green Forest",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_43_petrol_nero",
+          "label": "Petrol Nero",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_52_mint_forest",
+          "label": "Mint Forest",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_54_braun",
+          "label": "Braun",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_61_classic_green_cognac",
+          "label": "Classic Green Cognac",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_62_dunkelgrau_nero",
+          "label": "Dunkelgrau Nero",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_63_rot_poppy_red",
+          "label": "Rot Poppy Red",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_66_nero",
+          "label": "Nero",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_67_cognac",
+          "label": "Cognac",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_68_avocado",
+          "label": "Avocado",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_69_dunkelgrau",
+          "label": "Dunkelgrau",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_72_poppy_red",
+          "label": "Poppy Red",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_73_nero_coconut",
+          "label": "Nero Coconut",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_74_sierragrau_nero",
+          "label": "Sierragrau Nero",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_75_kastanie_nero",
+          "label": "Kastanie Nero",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_80_coffee",
+          "label": "Coffee",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_81_blau_coconut",
+          "label": "Blau Coconut",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_84_poppy_red_champagner",
+          "label": "Poppy Red Champagner",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_86_dunkelbau_braun",
+          "label": "Dunkelbau Braun",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_87_nero_cremeweiss",
+          "label": "Nero Cremeweiss",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_96_rot_cognac",
+          "label": "Rot Cognac",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_97_rot_coconut",
+          "label": "Rot Coconut",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_98_dunkelrot_nero",
+          "label": "Dunkelrot Nero",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "Plano_99_cognac_pergament",
+          "label": "Cognac Pergament",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "Pakete",
+      "label": "Pakete",
+      "options": [
+        {
+          "code": "kein_paket",
+          "label": "Kein Paket",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 0,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 0,
+              "unit": "g"
+            }
+          }
+        },
+        {
+          "code": "paket_comfort",
+          "label": "Paket Comfort",
+          "delta": {
+            "price": {
+              "mode": "listenpreis",
+              "value": 16000,
+              "unit": "EUR",
+              "scale": 2
+            },
+            "weight": {
+              "value": 1400,
+              "unit": "g"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "type": "excludes",
+      "if": [
+        "lehne_trim"
+      ],
+      "then": [
+        "Plano_39_gelb_pastellgruen"
+      ],
+      "message": "Beispielregel: Der Bezug Gelb Pastellgrün ist für die Trim-Lehne nicht lieferbar."
+    },
+    {
+      "type": "requires",
+      "if": [
+        "armlehnen_poliert_ring"
+      ],
+      "then": [
+        "sitzform_normal"
+      ],
+      "message": "Beispielregel: Polierte Ring-Armlehnen gibt es nur zur Sitzform Normal."
+    },
+    {
+      "type": "bundle",
+      "code": "paket_comfort",
+      "contains": [
+        "armlehnen_poliert_ring",
+        "lehne_soft"
+      ],
+      "message": "Beispielregel: Im Paket Comfort sind Armlehnen und Soft-Lehne enthalten."
+    },
+    {
+      "type": "affects",
+      "if": [
+        "lehne_trim",
+        "armlehnen_poliert_ring"
+      ],
+      "attribute": "verstellbereich",
+      "delta": {
+        "value": -20,
+        "unit": "mm"
+      },
+      "message": "Beispielregel: Diese Kombination verringert den Verstellbereich."
+    }
+  ]
+}

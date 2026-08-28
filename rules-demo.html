@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>USDconfig Regeln &amp; Werte Demo · viSales</title>
+<meta name="description" content="Vitra ID Chair Schritt für Schritt konfigurieren, mit typisierten Werten und Regeln als Daten. OpenUSD-basiert, ohne App.">
+<link rel="canonical" href="https://kopfkinok3.github.io/USDconfig-demo-player/rules-demo.html">
+<!-- Vorschau beim Teilen. Crawler fuehren kein JavaScript aus, das Bild ist
+     deshalb fest und zeigt nicht die jeweils geteilte Konfiguration. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="viSales USDconfig">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://kopfkinok3.github.io/USDconfig-demo-player/rules-demo.html">
+<meta property="og:title" content="USDconfig Regeln &amp; Werte Demo · Vitra ID Chair">
+<meta property="og:description" content="Schritt für Schritt konfigurieren, mit typisierten Werten und Regeln als Daten. OpenUSD-basiert, ohne App.">
+<meta property="og:image" content="https://kopfkinok3.github.io/USDconfig-demo-player/assets/og-usdconfig.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta property="og:image:alt" content="USDconfig Produktkonfigurator, Bürodrehstuhl in 3D">
+<meta name="twitter:card" content="summary_large_image">
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+:root {
+  --bg:        #f5f5f7;
+  --panel:     #ffffff;
+  --card:      #f0f0f3;
+  --hover:     #e8e8ec;
+  --border:    rgba(0,0,0,0.08);
+  --amber:     #f97316;
+  --amber-dim: rgba(249,115,22,0.10);
+  --amber-brd: rgba(249,115,22,0.35);
+  --cyan:      #0891b2;
+  --red:       #dc2626;
+  --red-dim:   rgba(220,38,38,0.08);
+  --red-brd:   rgba(220,38,38,0.30);
+  --text-hi:   #1a1a1a;
+  --text-mid:  #666;
+  --text-lo:   #aaa;
+  --font:      -apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+  --panel-w:   320px;
+  --hdr:       54px;
+  --r:         14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text-hi);font-family:var(--font);overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+#app{display:grid;grid-template-columns:1fr var(--panel-w);grid-template-rows:var(--hdr) 1fr;height:100vh;height:100dvh}
+
+/* ── HEADER ── */
+header{
+  grid-column:1/-1;display:flex;align-items:center;gap:10px;
+  padding:0 20px;background:var(--panel);border-bottom:1px solid var(--border);
+}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--amber);display:flex;align-items:center;justify-content:center}
+.logo svg{color:#fff}
+.brand{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+.brand span{color:var(--amber)}
+.model-name{font-size:13px;color:var(--text-mid);margin-left:4px}
+
+/* ── VIEWER ── */
+#viewer-wrap{position:relative;background:var(--bg)}
+model-viewer{width:100%;height:100%}
+#loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg);transition:opacity .3s}
+#loading.hidden{opacity:0;pointer-events:none}
+.spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PANEL ── */
+#panel{
+  background:var(--panel);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Progress bar */
+#progress{
+  padding:16px 20px 0;
+  display:flex;gap:6px;align-items:center;flex-shrink:0;
+}
+.prog-step{
+  flex:1;height:3px;border-radius:2px;background:var(--card);
+  transition:background .3s;
+}
+.prog-step.done{background:var(--amber)}
+.prog-step.active{background:var(--amber);opacity:.45}
+
+/* Step label */
+#step-header{
+  padding:14px 20px 10px;flex-shrink:0;
+}
+.step-num{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--text-lo);text-transform:uppercase;margin-bottom:3px}
+.step-title{font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--text-hi)}
+
+/* Step content (scrollable) */
+#step-body{
+  flex:1;overflow-y:auto;padding:6px 16px 16px;
+  position:relative;
+}
+
+/* Option cards */
+.opt-card{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-radius:var(--r);border:1.5px solid var(--border);
+  background:var(--card);cursor:pointer;margin-bottom:8px;
+  transition:border-color .15s,background .15s,transform .1s;
+  user-select:none;
+}
+.opt-card:hover{background:var(--hover);border-color:rgba(0,0,0,.12)}
+.opt-card.selected{
+  border-color:var(--amber-brd);background:var(--amber-dim);
+}
+.opt-card.selected .opt-check{opacity:1;transform:scale(1)}
+.opt-label{font-size:14px;font-weight:600;flex:1;text-transform:capitalize}
+.opt-bundle-tag{font-size:9.5px;font-weight:600;color:var(--text-mid);background:rgba(0,0,0,.06);padding:2px 7px;border-radius:999px;margin-right:4px;white-space:nowrap}
+.opt-check{
+  width:20px;height:20px;border-radius:50%;background:var(--amber);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  opacity:0;transform:scale(.6);transition:opacity .2s,transform .2s;
+}
+.opt-check svg{color:#fff;width:11px;height:11px}
+
+/* Color swatches */
+.swatch-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:2px 0}
+.swatch{
+  aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;
+  transition:transform .12s,border-color .12s;
+}
+.swatch:hover{transform:scale(1.18)}
+.swatch.selected{border-color:var(--amber);transform:scale(1.12)}
+.color-name{
+  font-size:11px;color:var(--text-mid);text-align:center;
+  padding:8px 0 0;min-height:28px;line-height:1.3;
+}
+
+/* Demo-Preis */
+#price-line{
+  padding:10px 16px 0;flex-shrink:0;
+  display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+}
+#price-line .price-label{font-size:11px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.04em}
+#price-line .price-value{font-size:15px;font-weight:700;color:var(--text-hi)}
+#price-line .price-value.unavailable{color:var(--text-lo);font-weight:600;font-size:12px}
+
+/* Verstoßliste */
+#violations{padding:8px 16px 0;flex-shrink:0}
+#violations.hidden{display:none}
+.violation-item{
+  font-size:11.5px;line-height:1.4;color:var(--red);
+  background:var(--red-dim);border:1px solid var(--red-brd);
+  border-radius:10px;padding:7px 10px;margin-bottom:6px;
+}
+
+/* Summary chips */
+#summary-heading{padding:12px 16px 0;flex-shrink:0}
+#summary-heading .demo-tag{
+  font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-brd);
+  padding:2px 7px;border-radius:999px;
+}
+#summary{
+  border-top:1px solid var(--border);padding:12px 16px;
+  display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;
+}
+.chip{
+  font-size:11px;font-weight:500;padding:4px 10px;
+  border-radius:999px;background:var(--card);color:var(--text-mid);
+  cursor:pointer;border:1px solid var(--border);transition:background .12s;
+  white-space:nowrap;
+}
+.chip:hover{background:var(--hover)}
+.chip strong{color:var(--text-hi)}
+.chip.locked{opacity:.7}
+
+/* Footer buttons */
+#footer{padding:12px 16px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 16px;border-radius:var(--r);border:none;cursor:pointer;
+  font-size:13px;font-weight:600;font-family:var(--font);transition:opacity .15s,transform .1s;
+}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--amber);color:#fff}
+.btn-primary:hover{opacity:.9}
+.btn-secondary{background:var(--card);color:var(--text-hi);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--hover)}
+
+/* Deaktivierter Knopf, DEMO-Kennzeichnung, Hinweis */
+.btn.is-disabled,.btn:disabled{
+  background:var(--card);color:var(--text-lo);border:1px solid var(--border);
+  cursor:not-allowed;
+}
+.btn.is-disabled:hover,.btn:disabled:hover{opacity:1}
+.btn.is-disabled:active,.btn:disabled:active{transform:none}
+.btn-tag{
+  font-size:9px;font-weight:700;letter-spacing:.08em;
+  padding:2px 6px;border-radius:999px;margin-left:2px;
+  background:rgba(0,0,0,.06);color:var(--text-mid);
+}
+#ar-note{
+  font-size:10.5px;color:var(--text-lo);text-align:center;
+  margin:-4px 0 2px;line-height:1.4;
+}
+#share-url{
+  font-size:11px;line-height:1.45;word-break:break-all;user-select:all;
+  padding:9px 11px;border-radius:10px;
+  background:var(--card);border:1px solid var(--border);color:var(--text-mid);
+}
+
+/* Toast */
+#toast{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);
+  max-width:min(560px,88vw);z-index:50;
+  padding:10px 16px;border-radius:999px;
+  background:rgba(26,26,26,.94);color:#fff;
+  font-size:12.5px;font-weight:500;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+}
+#toast.visible{opacity:1;transform:translate(-50%,0)}
+
+/* Slide transitions */
+.step-slide{animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+/* Engine badge */
+.badge{
+  position:absolute;top:10px;right:12px;z-index:10;
+  font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:3px 8px;border-radius:999px;
+  background:rgba(249,115,22,.12);color:var(--amber);
+  border:1px solid rgba(249,115,22,.25);
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="logo">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+    </div>
+    <span class="brand"><span>USD</span>config</span>
+    <span class="model-name">Vitra ID Chair · Regeln &amp; Werte</span>
+  </header>
+
+  <!-- Viewer -->
+  <div id="viewer-wrap">
+    <div class="badge">model-viewer · WebGL</div>
+    <model-viewer
+      id="mv"
+      camera-controls
+      touch-action="pan-y"
+      auto-rotate
+      auto-rotate-delay="3000"
+      rotation-per-second="10deg"
+      shadow-intensity="1.4"
+      shadow-softness="0.9"
+      environment-image="neutral"
+      exposure="1.15"
+      ar
+      ar-modes="quick-look webxr scene-viewer"
+    >
+      <button slot="ar-button" style="display:none"></button>
+    </model-viewer>
+    <div id="loading">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Wizard Panel -->
+  <div id="panel">
+    <div id="progress"></div>
+    <div id="step-header">
+      <div class="step-num" id="step-num"></div>
+      <div class="step-title" id="step-title"></div>
+    </div>
+    <div id="step-body"></div>
+    <div id="price-line">
+      <span class="price-label">Demo-Preis</span>
+      <span class="price-value" id="price-value">–</span>
+    </div>
+    <div id="violations" class="hidden"></div>
+    <div id="summary-heading">
+      <span class="demo-tag">DEMO</span>
+      <span style="font-size:11px;font-weight:600;color:var(--text-mid);margin-left:6px">Demo-Konfiguration</span>
+    </div>
+    <div id="summary"></div>
+    <div id="footer">
+      <button class="btn btn-primary is-disabled" id="btn-ar" onclick="doAR()" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12H3a9 9 0 0018 0h-2M12 3v9m0 0l-3-3m3 3l3-3"/></svg>
+        In AR anzeigen
+        <span class="btn-tag">DEMO</span>
+      </button>
+      <div id="ar-note">AR in dieser Demo nur auf iPhone und iPad</div>
+      <button class="btn btn-secondary" id="btn-share" onclick="doShare()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Konfiguration teilen
+      </button>
+      <div id="share-url" hidden></div>
+    </div>
+  </div>
+  <div id="toast"></div>
+
+</div>
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   REGEL-AUSWERTER (A1 + A2) — reine Funktionen, kein DOM-Zugriff.
+   test/a1a2.js schneidet genau diesen Block heraus (Marker @pure-start /
+   @pure-end) und fuehrt ihn per Node vm aus. Einzige Quelle fuer die
+   Rechen- und Regellogik, im Browser wie im Test.
+   ══════════════════════════════════════════════════════════════════════ */
+/* @pure-start */
+
+/* Prueft den rohen Datensatz auf Ladefehler. Aktuell: doppelte Codes
+   ueber alle Schritte hinweg (Spec A2, Abnahme Punkt 2). */
+function loadDataset(raw) {
+  const errors = [];
+  const seen = new Set();
+  (raw && raw.steps || []).forEach(step => {
+    (step.options || []).forEach(opt => {
+      if (seen.has(opt.code)) errors.push('Doppelter Code: "' + opt.code + '"');
+      seen.add(opt.code);
+    });
+  });
+  return { dataset: raw, errors };
+}
+
+function indexOptionsByCode(dataset) {
+  const map = new Map();
+  (dataset.steps || []).forEach(step => {
+    (step.options || []).forEach(opt => map.set(opt.code, opt));
+  });
+  return map;
+}
+
+/* Summiert ein Feld (z.B. "price", "weight") aus base plus den delta der
+   nicht gesperrten gewaehlten Optionen. Reihenfolge und Regeln siehe
+   SPEC-A1-typisierte-werte.md und SPEC-A2-regel-layer.md Abschnitt
+   "Reihenfolge der Auswertung". */
+function sumField(dataset, chosenOptions, fieldKey) {
+  const base = dataset.base && dataset.base[fieldKey];
+  if (!base) return { available: false, reason: 'unvollstaendig' };
+
+  if (base.mode === 'ausgeblendet') return { available: false, reason: 'ausgeblendet' };
+
+  if (base.mode === 'groessenordnung') {
+    if (base.min === undefined || base.max === undefined) {
+      return { available: false, reason: 'unvollstaendig' };
+    }
+    let min = base.min, max = base.max, complete = true;
+    for (const opt of chosenOptions) {
+      const f = opt.delta && opt.delta[fieldKey];
+      if (!f) { complete = false; continue; }
+      if (f.unit !== base.unit) return { available: false, reason: 'einheiten-konflikt' };
+      if (f.min === undefined || f.max === undefined) { complete = false; continue; }
+      min += f.min; max += f.max;
+    }
+    return { available: true, mode: 'groessenordnung', min, max, unit: base.unit, scale: base.scale || 0, complete };
+  }
+
+  let value = base.value, complete = (base.value !== undefined);
+  if (base.value === undefined) return { available: false, reason: 'unvollstaendig' };
+  for (const opt of chosenOptions) {
+    const f = opt.delta && opt.delta[fieldKey];
+    if (!f || f.value === undefined) { complete = false; continue; }
+    if (f.unit !== base.unit) return { available: false, reason: 'einheiten-konflikt' };
+    value += f.value;
+  }
+  return { available: true, mode: base.mode || null, value, unit: base.unit, scale: base.scale || 0, complete };
+}
+
+/* Reine Auswertung: Datensatz plus gewaehlte Codes rein, Summen,
+   Verstoesse, gesperrte Optionen raus. Reihenfolge nach Spec A2:
+   1. Buendel aufloesen, 2. excludes, 3. requires, 4. summieren,
+   5. affects anwenden. Ein Verstoss bricht die Rechnung nicht ab. */
+function evaluateConfiguration(dataset, selectedCodes) {
+  selectedCodes = (selectedCodes || []).filter(Boolean);
+  const rules = dataset.rules || [];
+  const optionsByCode = indexOptionsByCode(dataset);
+
+  /* 1. Buendel aufloesen */
+  const bundleRules = rules.filter(r => r.type === 'bundle');
+  const activeBundles = bundleRules.filter(r => selectedCodes.includes(r.code));
+  const lockedCodes = new Set();
+  const implied = new Set();
+  activeBundles.forEach(b => (b.contains || []).forEach(c => { implied.add(c); lockedCodes.add(c); }));
+  const effectiveSelected = Array.from(new Set([...selectedCodes, ...implied]));
+  const has = code => effectiveSelected.includes(code);
+
+  /* 2 + 3. excludes und requires, Verstoesse sammeln statt abbrechen */
+  const violations = [];
+  rules.filter(r => r.type === 'excludes').forEach(r => {
+    const ifAll = (r.if || []).every(has);
+    const thenAll = (r.then || []).every(has);
+    if (ifAll && thenAll) violations.push({ type: 'excludes', message: r.message });
+  });
+  rules.filter(r => r.type === 'requires').forEach(r => {
+    const ifAll = (r.if || []).every(has);
+    if (!ifAll) return;
+    const missing = (r.then || []).filter(c => !has(c));
+    if (missing.length) violations.push({ type: 'requires', message: r.message, missing });
+  });
+
+  /* 4. Summieren, gesperrte (buendel-enthaltene) Optionen ueberspringen */
+  const chosenOptions = effectiveSelected
+    .filter(c => !lockedCodes.has(c))
+    .map(c => optionsByCode.get(c))
+    .filter(Boolean);
+  const totals = {
+    price: sumField(dataset, chosenOptions, 'price'),
+    weight: sumField(dataset, chosenOptions, 'weight'),
+  };
+
+  /* 5. affects anwenden, auf das Ergebnis aus Schritt 4 — unabhaengige
+     Attribute, keine Interaktion mit price/weight. Summe ueber alle
+     zutreffenden Regeln ist kommutativ, die Reihenfolge der Regeln im
+     Array veraendert das Ergebnis nicht. */
+  const attributes = {};
+  rules.filter(r => r.type === 'affects').forEach(r => {
+    if (!(r.if || []).every(has)) return;
+    const attr = r.attribute;
+    const base = dataset.base && dataset.base[attr];
+    if (!base || base.value === undefined) return;
+    if (!attributes[attr]) {
+      attributes[attr] = { value: base.value, unit: base.unit, scale: base.scale || 0, appliedRules: [] };
+    }
+    if (r.delta.unit !== attributes[attr].unit) return;
+    attributes[attr].value += r.delta.value;
+    attributes[attr].appliedRules.push(r.message);
+  });
+
+  return {
+    effectiveSelected,
+    lockedCodes: Array.from(lockedCodes),
+    bundlesActive: activeBundles.map(b => b.code),
+    violations,
+    totals,
+    attributes,
+  };
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { loadDataset, evaluateConfiguration, sumField, indexOptionsByCode };
+}
+/* @pure-end */
+
+/* ── FALLBACK, WENN DER DATENSATZ NICHT LAEDT ──
+   Gleiche Codes wie im Datensatz, aber ohne delta. Der Konfigurator bleibt
+   damit bedienbar, nur ohne Werte und Regeln, statt weiss zu bleiben. */
+const FALLBACK_STEPS = [
+  { key: 'Sitzform', label: 'Sitzform', options: [
+      { code: 'sitzform_kontur', label: 'Kontur' },
+      { code: 'sitzform_normal', label: 'Normal' },
+  ]},
+  { key: 'Lehne', label: 'Lehne', options: [
+      { code: 'lehne_soft', label: 'Soft' },
+      { code: 'lehne_trim', label: 'Trim' },
+  ]},
+  { key: 'Armlehnen', label: 'Armlehnen', options: [
+      { code: 'armlehnen_ohne', label: 'Ohne' },
+      { code: 'armlehnen_exoliert_3d', label: 'Exoliert 3D' },
+      { code: 'armlehnen_poliert_ring', label: 'Poliert, Ring' },
+  ]},
+  { key: 'Bezug', label: 'Bezugfarbe', options: [
+      { code: 'Plano_03_pergament_cremeweiss', label: 'Pergament Cremeweiss' },
+  ]},
+];
+
+/* ── BEZUG COLORS (Praesentation, nicht Teil des A1/A2-Datensatzes) ── */
+const BEZUG_COLORS = {
+  "Plano_03_pergament_cremeweiss":"#f5f5f2","Plano_07_orange":"#e9866d",
+  "Plano_34_wiesengruen_forest":"#d6e5ab","Plano_05_cremeweiss_sierragrau":"#f4f4f2",
+  "Plano_11_kastanie_cognac":"#9e7c84","Plano_12_lichtgrau_eisblau":"#f8fbff",
+  "Plano_13_nero_eisblau":"#979e9e","Plano_15_pink_sierragrau":"#f6e5ee",
+  "Plano_16_dunkelrot_eisblau":"#bd727e","Plano_17_forest_sierragrau":"#b9bca5",
+  "Plano_18_hellgrau_sierragrau":"#f2f2f1","Plano_19_sierragrau":"#d4cec8",
+  "Plano_20_tobacco_cremeweiss":"#e6d6c8","Plano_39_gelb_pastellgruen":"#fdf496",
+  "Plano_40_coconut_forest":"#917f82","Plano_41_classic_green_forest":"#a6dea7",
+  "Plano_43_petrol_nero":"#66969a","Plano_52_mint_forest":"#b3e1da",
+  "Plano_54_braun":"#a5938c","Plano_61_classic_green_cognac":"#abd997",
+  "Plano_62_dunkelgrau_nero":"#a8a8ad","Plano_63_rot_poppy_red":"#e88397",
+  "Plano_66_nero":"#93989c","Plano_67_cognac":"#d4af76",
+  "Plano_68_avocado":"#dadd95","Plano_69_dunkelgrau":"#a8a8ad",
+  "Plano_72_poppy_red":"#e4787c","Plano_73_nero_coconut":"#93989c",
+  "Plano_74_sierragrau_nero":"#d4cec8","Plano_75_kastanie_nero":"#9e7c84",
+  "Plano_80_coffee":"#cabdb2","Plano_81_blau_coconut":"#98d4f3",
+  "Plano_84_poppy_red_champagner":"#ed767d","Plano_86_dunkelbau_braun":"#7c899a",
+  "Plano_87_nero_cremeweiss":"#597789","Plano_96_rot_cognac":"#f28183",
+  "Plano_97_rot_coconut":"#ef788c","Plano_98_dunkelrot_nero":"#c7747a",
+  "Plano_99_cognac_pergament":"#d7ad84",
+};
+
+/* Codes -> bestehende GLB-Dateinamen (assets/product-<S>-<L>-<A>.glb).
+   Die Dateien tragen die alten, teils uneinheitlich prefixierten Tokens
+   aus wizard.html, der Datensatz traegt neue, global eindeutige Codes
+   (Spec A2). Diese Tabelle ist die einzige Uebersetzungsstelle. */
+const GLB_TOKEN = {
+  sitzform_kontur: 'kontur',
+  sitzform_normal: 'normal',
+  lehne_soft: 'soft',
+  lehne_trim: 'trim',
+  armlehnen_ohne: 'ohne',
+  armlehnen_exoliert_3d: 'armlehnen_exoliert_3d',
+  armlehnen_poliert_ring: 'armlehnen_poliert_ring',
+};
+
+/* ── STATE ── */
+let DATASET = null;
+let LOAD_ERROR = null;
+let STEPS = [];
+let DEFAULTS = {};
+const state = {};
+let lastEval = null;
+let currentStep = 0;
+let advanceTimer = null;
+
+function eff(key) {
+  return state[key] !== null && state[key] !== undefined ? state[key] : DEFAULTS[key];
+}
+
+/* ── URL-PARAMETER LESEN ── */
+function readStateFromUrl() {
+  let params;
+  try {
+    params = new URLSearchParams(window.location.search);
+  } catch (e) {
+    return;
+  }
+  STEPS.forEach(step => {
+    const raw = params.get(step.key);
+    if (raw === null || raw === '') return;
+    const needle = raw.trim().toLowerCase().replace(/ /g, '_');
+    const match = step.options.find(opt => opt.code.toLowerCase() === needle);
+    if (match) state[step.key] = match.code;
+  });
+}
+
+/* ── ASSET-BASIS ── */
+const ASSET_BASE = '';
+
+/* ── RESOLVE GLB ── */
+function resolveGlb() {
+  const s = GLB_TOKEN[eff('Sitzform')] || eff('Sitzform');
+  const l = GLB_TOKEN[eff('Lehne')] || eff('Lehne');
+  const a = GLB_TOKEN[eff('Armlehnen')] || eff('Armlehnen');
+  return `${ASSET_BASE}assets/product-${s}-${l}-${a}.glb`;
+}
+function resolveUsdz() {
+  return `${ASSET_BASE}assets/chair-master.usdz`;
+}
+
+/* ── MODEL VIEWER ── */
+const mv = document.getElementById('mv');
+mv.addEventListener('load', () => {
+  document.getElementById('loading').classList.add('hidden');
+  if (mv.availableVariants?.includes(eff('Bezug'))) {
+    mv.variantName = eff('Bezug');
+  }
+  updateArButton();
+});
+
+function updateViewer() {
+  const glb = resolveGlb();
+  if (glb !== mv.getAttribute('src')) {
+    document.getElementById('loading').classList.remove('hidden');
+    mv.setAttribute('src', glb);
+  }
+  const usdz = resolveUsdz();
+  if (usdz) mv.setAttribute('ios-src', usdz);
+  if (mv.availableVariants?.includes(eff('Bezug'))) {
+    mv.variantName = eff('Bezug');
+  }
+}
+
+/* ── AUSWERTUNG NEU BERECHNEN ── */
+function recompute() {
+  if (!DATASET) { lastEval = null; return; }
+  const selected = STEPS.map(s => state[s.key]).filter(Boolean);
+  lastEval = evaluateConfiguration(DATASET, selected);
+}
+
+function formatMoney(amountRaw, unit, scale) {
+  const amount = amountRaw / Math.pow(10, scale || 0);
+  try {
+    return amount.toLocaleString('de-DE', { style: 'currency', currency: unit });
+  } catch (e) {
+    return amount.toFixed(scale || 0) + ' ' + unit;
+  }
+}
+
+function formatPriceResult(result) {
+  if (!result || result.available === false) {
+    if (result && result.reason === 'ausgeblendet') return 'nicht verfügbar';
+    return 'unvollständig';
+  }
+  if (result.mode === 'groessenordnung') {
+    const text = formatMoney(result.min, result.unit, result.scale) + ' – ' + formatMoney(result.max, result.unit, result.scale);
+    return result.complete ? text : text + ' (unvollständig)';
+  }
+  const text = formatMoney(result.value, result.unit, result.scale);
+  return result.complete ? text : text + ' (unvollständig)';
+}
+
+/* ── RENDER STEP ── */
+function renderStep(idx) {
+  currentStep = Math.max(0, Math.min(STEPS.length - 1, idx));
+  const step = STEPS[currentStep];
+  const total = STEPS.length;
+  recompute();
+  const locked = lastEval ? new Set(lastEval.lockedCodes) : new Set();
+
+  /* Progress dots */
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'prog-step' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+    prog.appendChild(d);
+  }
+
+  /* Step header */
+  document.getElementById('step-num').textContent = `Schritt ${currentStep + 1} von ${total}`;
+  document.getElementById('step-title').textContent = step.label;
+
+  /* Step body */
+  const body = document.getElementById('step-body');
+  body.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'step-slide';
+
+  if (step.key === 'Bezug') {
+    const grid = document.createElement('div');
+    grid.className = 'swatch-grid';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'color-name';
+    nameEl.id = 'color-name';
+
+    const sel = state[step.key];
+    nameEl.textContent = sel
+      ? sel.replace(/Plano_\d+_/, '').replace(/_/g, ' ')
+      : 'noch keine Farbe gewählt';
+
+    step.options.forEach(opt => {
+      const hex = BEZUG_COLORS[opt.code] || '#ccc';
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (state[step.key] === opt.code ? ' selected' : '');
+      sw.style.background = hex;
+      sw.title = opt.label;
+      sw.addEventListener('click', () => {
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+        sw.classList.add('selected');
+        state[step.key] = opt.code;
+        nameEl.textContent = opt.label;
+        if (mv.availableVariants?.includes(opt.code)) mv.variantName = opt.code;
+        updateSummary();
+        syncUrl();
+      });
+      grid.appendChild(sw);
+    });
+    wrap.appendChild(grid);
+    wrap.appendChild(nameEl);
+
+  } else {
+    step.options.forEach(opt => {
+      const card = document.createElement('div');
+      card.className = 'opt-card' + (state[step.key] === opt.code ? ' selected' : '');
+      card.innerHTML = `
+        ${locked.has(opt.code) ? '<span class="opt-bundle-tag">im Paket enthalten</span>' : ''}
+        <span class="opt-label">${opt.label}</span>
+        <span class="opt-check">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </span>`;
+      card.addEventListener('click', () => selectOption(step.key, opt.code, currentStep));
+      wrap.appendChild(card);
+    });
+  }
+
+  body.appendChild(wrap);
+  updateSummary();
+}
+
+/* ── SELECT OPTION (cards) ── */
+function selectOption(key, code, stepIdx) {
+  state[key] = code;
+
+  document.querySelectorAll('.opt-card').forEach(card => {
+    const label = card.querySelector('.opt-label').textContent;
+    const opt = STEPS[currentStep].options.find(o => o.label === label);
+    card.classList.toggle('selected', !!opt && opt.code === code);
+  });
+
+  if (key !== 'Bezug') {
+    updateViewer();
+  }
+  updateSummary();
+  syncUrl();
+
+  clearTimeout(advanceTimer);
+  if (stepIdx < STEPS.length - 1) {
+    advanceTimer = setTimeout(() => renderStep(stepIdx + 1), 420);
+  }
+}
+
+/* ── SUMMARY, PREIS, VERSTOESSE ── */
+function updateSummary() {
+  recompute();
+
+  const priceEl = document.getElementById('price-value');
+  if (!DATASET) {
+    priceEl.textContent = 'kein Datensatz geladen';
+    priceEl.classList.add('unavailable');
+  } else {
+    const text = formatPriceResult(lastEval.totals.price);
+    priceEl.textContent = text;
+    priceEl.classList.toggle('unavailable', text === 'nicht verfügbar' || text === 'unvollständig');
+  }
+
+  const violBox = document.getElementById('violations');
+  violBox.innerHTML = '';
+  const violations = lastEval ? lastEval.violations : [];
+  violBox.classList.toggle('hidden', violations.length === 0);
+  violations.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'violation-item';
+    el.textContent = v.message;
+    violBox.appendChild(el);
+  });
+
+  const locked = lastEval ? new Set(lastEval.lockedCodes) : new Set();
+  const sum = document.getElementById('summary');
+  sum.innerHTML = '';
+  STEPS.slice(0, currentStep).forEach(step => {
+    const code = state[step.key];
+    if (!code) return;
+    const opt = step.options.find(o => o.code === code);
+    const label = opt ? opt.label : code;
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (locked.has(code) ? ' locked' : '');
+    chip.innerHTML = `${step.key}: <strong>${label}</strong>` + (locked.has(code) ? ' · im Paket' : '');
+    chip.addEventListener('click', () => {
+      clearTimeout(advanceTimer);
+      renderStep(STEPS.findIndex(s => s.key === step.key));
+    });
+    sum.appendChild(chip);
+  });
+}
+
+/* ── TOAST ── */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('visible'), 4000);
+}
+
+/* ── AR ── */
+function arAvailable() {
+  return mv && mv.canActivateAR === true;
+}
+
+function updateArButton() {
+  const btn = document.getElementById('btn-ar');
+  const note = document.getElementById('ar-note');
+  if (!btn) return;
+  const ok = arAvailable();
+  btn.disabled = !ok;
+  btn.classList.toggle('is-disabled', !ok);
+  btn.title = ok
+    ? 'Modell in Augmented Reality anzeigen'
+    : 'In dieser Demo nur auf iPhone und iPad verfügbar';
+  if (note) note.hidden = ok;
+}
+
+function doAR() {
+  if (!arAvailable()) {
+    toast('AR ist in dieser Demo nur auf iPhone und iPad verfügbar');
+    return;
+  }
+  mv.activateAR();
+}
+
+/* ── SHARE ── */
+function buildShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+  STEPS.forEach(step => {
+    if (state[step.key] !== null && state[step.key] !== undefined) url.searchParams.set(step.key, state[step.key]);
+  });
+  return url.toString();
+}
+
+function syncUrl() {
+  if (!STEPS.every(s => state[s.key] !== null && state[s.key] !== undefined)) return;
+  try { history.replaceState(null, '', buildShareUrl()); } catch (e) { /* egal */ }
+}
+
+function doShare() {
+  const url = buildShareUrl();
+
+  const showUrl = () => {
+    const box = document.getElementById('share-url');
+    box.textContent = url;
+    box.hidden = false;
+    const r = document.createRange();
+    r.selectNodeContents(box);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    toast('Teilen nicht erlaubt, Link steht unten zum Kopieren');
+  };
+
+  const tryClipboard = () => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { showUrl(); return; }
+    navigator.clipboard.writeText(url).then(
+      () => toast('Link kopiert ✓'),
+      () => showUrl()
+    );
+  };
+
+  if (navigator.share) {
+    let p;
+    try { p = navigator.share({ title: 'Vitra ID Chair Konfiguration', url }); }
+    catch (e) { tryClipboard(); return; }
+    Promise.resolve(p).then(
+      () => {},
+      (err) => { if (err && err.name === 'AbortError') return; tryClipboard(); }
+    );
+    return;
+  }
+  tryClipboard();
+}
+
+/* ── INIT ──
+   Ohne Datensatz oder bei kaputtem JSON startet der Player trotzdem, mit
+   FALLBACK_STEPS und ohne Werte, statt weiss zu bleiben. */
+async function init() {
+  try {
+    const res = await fetch(`${ASSET_BASE}data/buerostuhl-demo.json`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.json();
+    const loaded = loadDataset(raw);
+    if (loaded.errors.length) throw new Error('Datensatz ungueltig: ' + loaded.errors.join('; '));
+    DATASET = loaded.dataset;
+    STEPS = DATASET.steps;
+  } catch (e) {
+    console.warn('Datensatz konnte nicht geladen werden, Fallback ohne Werte und Regeln:', e);
+    LOAD_ERROR = e;
+    DATASET = null;
+    STEPS = FALLBACK_STEPS;
+  }
+
+  STEPS.forEach(s => {
+    DEFAULTS[s.key] = s.options[0].code;
+    state[s.key] = null;
+  });
+
+  readStateFromUrl();
+  syncUrl();
+  updateViewer();
+  renderStep(0);
+}
+init();
+</script>
+</body>
+</html>

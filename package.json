@@ -1,0 +1,11 @@
+{
+  "name": "usdconfig-demo-player-tests",
+  "private": true,
+  "description": "Testaufbau fuer A1/A2 (typisierte Werte, Regel-Layer). Keine Runtime-Abhaengigkeit fuer den Player selbst.",
+  "scripts": {
+    "test": "node test/a1a2.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}
