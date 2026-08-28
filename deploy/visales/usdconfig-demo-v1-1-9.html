@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+
+<!-- Eigenstaendige Demo-Seite. Oberflaeche neu im viSales Warm Tech,
+     Zustandslogik unveraendert aus dem Repo USDconfig-demo-player v1.1.9:
+     readStateFromUrl, DEFAULTS/eff, syncUrl, buildShareUrl, doShare.
+     Aenderungen an dieser Logik gehoeren zuerst ins Repo. -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>USDconfig Demo · Vitra ID Chair · viSales</title>
+<meta name="description" content="Produktvarianten im Browser konfigurieren, Ergebnis als Link weitergeben. OpenUSD-basiert, ohne App, ohne Streaming.">
+<link rel="canonical" href="https://visales.de/usdconfig-demo-v1-1-9.html">
+
+<!-- Vorschau beim Teilen. Crawler fuehren kein JavaScript aus, das Bild ist
+     deshalb fest und zeigt nicht die jeweils geteilte Konfiguration. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="viSales">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://visales.de/usdconfig-demo-v1-1-9.html">
+<meta property="og:title" content="USDconfig Demo · Vitra ID Chair">
+<meta property="og:description" content="Produktvarianten im Browser konfigurieren, Ergebnis als Link weitergeben.">
+<meta property="og:image" content="https://visales.de/assets/images/og-usdconfig-demo.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta property="og:image:alt" content="USDconfig Produktkonfigurator, Bürodrehstuhl in 3D">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Ausgelieferte Player-Version. Muss mit dem Dateinamen und mit dem
+     Tag im Repo USDconfig-demo-player uebereinstimmen. -->
+<meta name="usdconfig-version" content="1.1.9">
+
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+/* ============================================================
+   viSales Warm Tech
+   Orange = Eingabe und Verarbeitung, Cyan = Ausgabe, AR, 3D.
+   Weisser Grund, keine Verlaeufe, kein Dark Mode.
+   ============================================================ */
+:root{
+  --primary:#F97316; --primary-dark:#C2410C;
+  --accent:#0891B2;  --accent-dark:#065F73;
+
+  --text-heading:#1A1A1A; --text-body:#555555; --text-description:#888888;
+  --text-secondary:#999999; --text-tertiary:#BBBBBB; --text-muted:#AAAAAA;
+  --text-disabled:#CCCCCC;
+
+  --bg-canvas:#FFFFFF; --bg-neutral:#FAFAFA;
+  --bg-primary-tint:#FFF8F4; --bg-accent-tint:#F0FDFE;
+
+  --border-card:#F0F0F0; --border-inner:#E5E5E5;
+  --border-primary:#FBD5BC; --border-accent:#A5F0F9; --border-muted:#E0E0E0;
+
+  --font:-apple-system,"SF Pro Display","Segoe UI",system-ui,sans-serif;
+  --shadow-card:0 2px 5px rgba(0,0,0,.07);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+
+  --hdr:58px; --panel-w:392px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  width:100%;height:100%;background:var(--bg-canvas);color:var(--text-heading);
+  font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden;
+}
+button{font-family:inherit}
+
+/* ── Grundraster ── */
+#app{display:grid;grid-template-columns:1fr var(--panel-w);
+     grid-template-rows:var(--hdr) 1fr;height:100vh;height:100dvh}
+
+/* ── Kopf ── */
+header{
+  grid-column:1/-1;display:flex;align-items:center;gap:12px;
+  padding:0 20px;background:var(--bg-canvas);
+  border-bottom:1px solid var(--border-card);position:relative;
+}
+header::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--primary);border-radius:0 2px 2px 0}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mark svg{color:#fff}
+.wordmark{font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--text-heading)}
+.wordmark b{color:var(--primary);font-weight:700}
+.sep{width:1px;height:16px;background:var(--border-inner)}
+.product{font-size:12px;color:var(--text-description);letter-spacing:-.005em}
+.hdr-spacer{flex:1}
+.hdr-tag{
+  font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 9px;border-radius:3px;
+  background:var(--bg-accent-tint);color:var(--accent-dark);
+  border:1px solid var(--border-accent);
+}
+
+/* ── Buehne ── */
+#stage{position:relative;background:var(--bg-neutral);overflow:hidden}
+model-viewer{width:100%;height:100%;background:var(--bg-neutral)}
+#loading{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--bg-neutral);transition:opacity .3s;
+}
+#loading.hidden{opacity:0;pointer-events:none}
+.spinner{width:26px;height:26px;border:2.5px solid var(--border-inner);
+  border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#engine{
+  position:absolute;left:20px;bottom:18px;
+  font-size:9.5px;font-weight:400;color:var(--text-tertiary);letter-spacing:.02em;
+}
+
+/* ── Panel ── */
+#panel{
+  background:var(--bg-canvas);border-left:1px solid var(--border-card);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+#progress{display:flex;gap:5px;padding:20px 24px 0;flex-shrink:0}
+.prog-step{flex:1;height:3px;border-radius:2px;background:var(--border-card);
+  transition:background .25s}
+.prog-step.done{background:var(--primary)}
+.prog-step.active{background:var(--border-primary)}
+
+#step-header{padding:18px 24px 12px;flex-shrink:0}
+.step-num{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-tertiary);margin-bottom:6px}
+.step-title{font-size:19px;font-weight:700;letter-spacing:-.015em;color:var(--text-heading)}
+
+#step-body{flex:1;overflow-y:auto;padding:4px 20px 18px}
+
+/* Optionskarten: Akzentstreifen links, sobald gewaehlt */
+.opt-card{
+  position:relative;display:flex;align-items:center;gap:12px;
+  padding:15px 16px 15px 18px;margin-bottom:8px;
+  border:1px solid var(--border-inner);border-radius:12px;
+  background:var(--bg-canvas);cursor:pointer;user-select:none;
+  transition:border-color .15s,background .15s;
+}
+.opt-card::before{
+  content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;
+  border-radius:0 2px 2px 0;background:transparent;transition:background .15s;
+}
+.opt-card:hover{border-color:var(--border-muted);background:var(--bg-neutral)}
+.opt-card.selected{border-color:var(--border-primary);background:var(--bg-primary-tint)}
+.opt-card.selected::before{background:var(--primary)}
+.opt-card.selected:hover{background:var(--bg-primary-tint)}
+.opt-label{flex:1;font-size:13px;font-weight:700;color:var(--text-heading);
+  text-transform:capitalize;letter-spacing:-.005em}
+.opt-check{
+  width:20px;height:20px;border-radius:50%;background:var(--primary);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(.6);transition:opacity .18s,transform .18s;
+}
+.opt-card.selected .opt-check{opacity:1;transform:scale(1)}
+.opt-check svg{color:#fff;width:11px;height:11px}
+
+/* Farbfelder */
+.swatch-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;padding:4px 0 0}
+.swatch{aspect-ratio:1;border-radius:50%;cursor:pointer;
+  border:2px solid var(--border-card);transition:transform .12s,border-color .12s}
+.swatch:hover{transform:scale(1.15);border-color:var(--border-muted)}
+.swatch.selected{border-color:var(--primary);transform:scale(1.1)}
+.color-name{
+  margin-top:14px;padding:11px 13px;border-radius:8px;
+  background:var(--bg-neutral);border:1px solid var(--border-inner);
+  font-size:12px;color:var(--text-body);text-align:center;min-height:40px;
+  display:flex;align-items:center;justify-content:center;
+}
+.color-name.empty{color:var(--text-muted)}
+
+/* Zusammenfassung */
+#summary{padding:0 20px;flex-shrink:0}
+#summary:not(:empty){padding:14px 20px 4px}
+.sum-inner{
+  background:var(--bg-neutral);border:1px solid var(--border-inner);border-radius:8px;
+  padding:12px 13px;display:flex;flex-wrap:wrap;gap:6px;
+}
+.sum-label{
+  width:100%;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-tertiary);margin-bottom:2px;
+}
+.chip{
+  font-size:11px;font-weight:400;color:var(--text-body);
+  padding:5px 10px;border-radius:100px;cursor:pointer;
+  background:var(--bg-canvas);border:1px solid var(--border-inner);
+  white-space:nowrap;transition:border-color .12s;
+}
+.chip:hover{border-color:var(--border-primary)}
+.chip b{color:var(--text-heading);font-weight:700}
+
+/* Fussbereich */
+#footer{padding:16px 20px 20px;border-top:1px solid var(--border-card);flex-shrink:0;
+  display:flex;flex-direction:column;gap:9px}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 16px;border:none;border-radius:100px;cursor:pointer;
+  font-size:13px;font-weight:700;letter-spacing:-.005em;
+  transition:background .15s,opacity .15s;
+}
+/* AR ist Ausgabe, deshalb Cyan */
+.btn-ar{background:var(--accent-dark);color:#fff}
+.btn-ar:hover{background:var(--accent)}
+/* Teilen ist der ruhige Zweitknopf */
+.btn-share{background:var(--bg-canvas);color:var(--text-heading);
+  border:1px solid var(--border-inner)}
+.btn-share:hover{background:var(--bg-neutral)}
+.btn:disabled,.btn.is-disabled{
+  background:var(--bg-neutral);color:var(--text-disabled);
+  border:1px solid var(--border-card);cursor:not-allowed;
+}
+.btn:disabled:hover,.btn.is-disabled:hover{background:var(--bg-neutral)}
+.btn-tag{
+  font-size:9px;font-weight:700;letter-spacing:.1em;
+  padding:3px 7px;border-radius:3px;
+  background:rgba(0,0,0,.05);color:var(--text-muted);
+}
+#ar-note{font-size:10.5px;line-height:1.45;color:var(--text-tertiary);text-align:center;
+  margin:-4px 0 0}
+#share-url{
+  font-size:11px;line-height:1.55;word-break:break-all;user-select:all;
+  padding:11px 13px;border-radius:8px;
+  background:var(--bg-neutral);border:1px solid var(--border-inner);
+  color:var(--text-body);
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+
+/* Toast */
+#toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);
+  max-width:min(560px,88vw);z-index:50;
+  padding:11px 18px;border-radius:100px;
+  background:var(--text-heading);color:#fff;
+  font-size:12.5px;font-weight:400;text-align:center;
+  box-shadow:var(--shadow-card);
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+}
+#toast.visible{opacity:1;transform:translate(-50%,0)}
+
+.step-slide{animation:slide .22s ease}
+@keyframes slide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+/* Schmale Fenster */
+@media (max-width:860px){
+  html,body{overflow:auto}
+  #app{grid-template-columns:1fr;grid-template-rows:var(--hdr) 46vh auto;height:auto}
+  #panel{border-left:none;border-top:1px solid var(--border-card)}
+  .swatch-grid{grid-template-columns:repeat(10,1fr)}
+  .product{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="mark">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+    </div>
+    <span class="wordmark"><b>USD</b>config</span>
+    <span class="sep"></span>
+    <span class="product">Vitra ID Chair, Demo</span>
+    <span class="hdr-spacer"></span>
+    <span class="hdr-tag">DEMO</span>
+  </header>
+
+  <div id="stage">
+    <model-viewer
+      id="mv"
+      camera-controls
+      touch-action="pan-y"
+      auto-rotate
+      auto-rotate-delay="3000"
+      rotation-per-second="10deg"
+      shadow-intensity="1.4"
+      shadow-softness="0.9"
+      environment-image="neutral"
+      exposure="1.15"
+      ar
+      ar-modes="quick-look webxr scene-viewer"
+    >
+      <button slot="ar-button" style="display:none"></button>
+    </model-viewer>
+    <div id="loading"><div class="spinner"></div></div>
+    <div id="engine"></div>
+  </div>
+
+  <div id="panel">
+    <div id="progress"></div>
+    <div id="step-header">
+      <div class="step-num" id="step-num"></div>
+      <div class="step-title" id="step-title"></div>
+    </div>
+    <div id="step-body"></div>
+    <div id="summary"></div>
+    <div id="footer">
+      <button class="btn btn-ar is-disabled" id="btn-ar" onclick="doAR()" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12H3a9 9 0 0018 0h-2M12 3v9m0 0l-3-3m3 3l3-3"/></svg>
+        In AR anzeigen
+        <span class="btn-tag">DEMO</span>
+      </button>
+      <div id="ar-note">AR in dieser Demo nur auf iPhone und iPad</div>
+      <button class="btn btn-share" id="btn-share" onclick="doShare()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Konfiguration teilen
+      </button>
+      <div id="share-url" hidden></div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+/* ── VERSION ──
+   Einzige Quelle fuer die ausgelieferte Version. Steht im Dateinamen, im
+   Kopf als meta usdconfig-version und sichtbar auf der Buehne. Aendert sich
+   der Player, aendern sich alle drei, sonst behauptet die URL etwas Falsches. */
+const PLAYER_VERSION = '1.1.9';
+
+/* ── BEZUG-FARBEN ── */
+const BEZUG_COLORS = {
+  "Plano_03_pergament_cremeweiss":"#f5f5f2","Plano_07_orange":"#e9866d",
+  "Plano_34_wiesengruen_forest":"#d6e5ab","Plano_05_cremeweiss_sierragrau":"#f4f4f2",
+  "Plano_11_kastanie_cognac":"#9e7c84","Plano_12_lichtgrau_eisblau":"#f8fbff",
+  "Plano_13_nero_eisblau":"#979e9e","Plano_15_pink_sierragrau":"#f6e5ee",
+  "Plano_16_dunkelrot_eisblau":"#bd727e","Plano_17_forest_sierragrau":"#b9bca5",
+  "Plano_18_hellgrau_sierragrau":"#f2f2f1","Plano_19_sierragrau":"#d4cec8",
+  "Plano_20_tobacco_cremeweiss":"#e6d6c8","Plano_39_gelb_pastellgruen":"#fdf496",
+  "Plano_40_coconut_forest":"#917f82","Plano_41_classic_green_forest":"#a6dea7",
+  "Plano_43_petrol_nero":"#66969a","Plano_52_mint_forest":"#b3e1da",
+  "Plano_54_braun":"#a5938c","Plano_61_classic_green_cognac":"#abd997",
+  "Plano_62_dunkelgrau_nero":"#a8a8ad","Plano_63_rot_poppy_red":"#e88397",
+  "Plano_66_nero":"#93989c","Plano_67_cognac":"#d4af76",
+  "Plano_68_avocado":"#dadd95","Plano_69_dunkelgrau":"#a8a8ad",
+  "Plano_72_poppy_red":"#e4787c","Plano_73_nero_coconut":"#93989c",
+  "Plano_74_sierragrau_nero":"#d4cec8","Plano_75_kastanie_nero":"#9e7c84",
+  "Plano_80_coffee":"#cabdb2","Plano_81_blau_coconut":"#98d4f3",
+  "Plano_84_poppy_red_champagner":"#ed767d","Plano_86_dunkelbau_braun":"#7c899a",
+  "Plano_87_nero_cremeweiss":"#597789","Plano_96_rot_cognac":"#f28183",
+  "Plano_97_rot_coconut":"#ef788c","Plano_98_dunkelrot_nero":"#c7747a",
+  "Plano_99_cognac_pergament":"#d7ad84",
+};
+
+/* ── SCHRITTE ── */
+const STEPS = [
+  { key:'Sitzform',  title:'Sitzform wählen',   type:'cards',    options:['kontur','normal'] },
+  { key:'Lehne',     title:'Lehnenform wählen', type:'cards',    options:['soft','trim'] },
+  { key:'Armlehnen', title:'Armlehnen wählen',  type:'cards',    options:['ohne','armlehnen_exoliert_3d','armlehnen_poliert_ring'] },
+  { key:'Bezug',     title:'Bezugfarbe wählen', type:'swatches', options:Object.keys(BEZUG_COLORS) },
+];
+
+/* ── ZUSTAND ──
+   state haelt NUR getroffene Entscheidungen. null heisst: noch nicht gewaehlt.
+   DEFAULTS ist der Anzeigefallback fuer den Viewer. Beides bewusst getrennt:
+   nur so ist von aussen unterscheidbar, ob eine Option gewaehlt wurde oder
+   ob sie nur zufaellig dem Standard entspricht. */
+const DEFAULTS = {
+  Sitzform:'kontur', Lehne:'soft', Armlehnen:'ohne',
+  Bezug:Object.keys(BEZUG_COLORS)[0],
+};
+const state = { Sitzform:null, Lehne:null, Armlehnen:null, Bezug:null };
+function eff(key){ return state[key] !== null ? state[key] : DEFAULTS[key]; }
+
+let currentStep = 0;
+let advanceTimer = null;
+
+/* ── URL-PARAMETER LESEN ──
+   Liest den Zustand aus der Adresszeile, bevor der erste Schritt gerendert wird.
+   Unbekannte oder fehlende Werte fallen still auf den Standard zurueck. */
+function readStateFromUrl(){
+  let params;
+  try { params = new URLSearchParams(window.location.search); }
+  catch (e) { return; }
+  STEPS.forEach(step => {
+    const raw = params.get(step.key);
+    if (raw === null || raw === '') return;
+    const needle = raw.trim().toLowerCase().replace(/ /g,'_');
+    const match = step.options.find(opt => opt.toLowerCase() === needle);
+    if (match) state[step.key] = match;
+  });
+}
+
+/* ── ASSET-BASIS ──
+   Leer heisst: Dateien liegen neben dieser HTML. Diese Seite liegt auf
+   visales.de, die Modelldateien auf GitHub Pages, dort ist der content-type
+   fuer USDZ korrekt gesetzt und CORS offen. */
+const ASSET_BASE = 'https://kopfkinok3.github.io/USDconfig-demo-player/';
+
+function resolveGlb(){
+  const s = eff('Sitzform').toLowerCase();
+  const l = eff('Lehne').toLowerCase();
+  const a = eff('Armlehnen').toLowerCase().replace(/ /g,'_');
+  return `${ASSET_BASE}assets/product-${s}-${l}-${a}.glb`;
+}
+function resolveUsdz(){
+  return `${ASSET_BASE}assets/chair-master.usdz`;
+}
+
+/* ── VIEWER ── */
+const mv = document.getElementById('mv');
+mv.addEventListener('load', () => {
+  document.getElementById('loading').classList.add('hidden');
+  if (mv.availableVariants?.includes(eff('Bezug'))) mv.variantName = eff('Bezug');
+  updateArButton();
+});
+
+function updateViewer(){
+  const glb = resolveGlb();
+  if (glb !== mv.getAttribute('src')) {
+    document.getElementById('loading').classList.remove('hidden');
+    mv.setAttribute('src', glb);
+  }
+  const usdz = resolveUsdz();
+  if (usdz) mv.setAttribute('ios-src', usdz);
+  if (mv.availableVariants?.includes(eff('Bezug'))) mv.variantName = eff('Bezug');
+}
+
+/* ── SCHRITT ZEICHNEN ── */
+function renderStep(idx){
+  currentStep = Math.max(0, Math.min(STEPS.length - 1, idx));
+  const step = STEPS[currentStep];
+  const total = STEPS.length;
+
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'prog-step' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+    prog.appendChild(d);
+  }
+
+  document.getElementById('step-num').textContent = `Schritt ${currentStep + 1} von ${total}`;
+  document.getElementById('step-title').textContent = step.title;
+
+  const body = document.getElementById('step-body');
+  body.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'step-slide';
+
+  if (step.type === 'cards') {
+    step.options.forEach(opt => {
+      const card = document.createElement('div');
+      card.className = 'opt-card' + (state[step.key] === opt ? ' selected' : '');
+      card.innerHTML = `
+        <span class="opt-label">${opt.replace(/_/g,' ')}</span>
+        <span class="opt-check">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </span>`;
+      card.addEventListener('click', () => selectOption(step.key, opt, currentStep));
+      wrap.appendChild(card);
+    });
+
+  } else if (step.type === 'swatches') {
+    const grid = document.createElement('div');
+    grid.className = 'swatch-grid';
+    const nameEl = document.createElement('div');
+    nameEl.id = 'color-name';
+
+    const sel = state[step.key];
+    nameEl.className = 'color-name' + (sel ? '' : ' empty');
+    nameEl.textContent = sel
+      ? sel.replace(/Plano_\d+_/, '').replace(/_/g,' ')
+      : 'noch keine Farbe gewählt';
+
+    Object.entries(BEZUG_COLORS).forEach(([key, hex]) => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (state[step.key] === key ? ' selected' : '');
+      sw.style.background = hex;
+      sw.title = key.replace(/Plano_\d+_/, '').replace(/_/g,' ');
+      sw.addEventListener('click', () => {
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+        sw.classList.add('selected');
+        state[step.key] = key;
+        nameEl.classList.remove('empty');
+        nameEl.textContent = key.replace(/Plano_\d+_/, '').replace(/_/g,' ');
+        if (mv.availableVariants?.includes(key)) mv.variantName = key;
+        updateSummary();
+        syncUrl();
+      });
+      grid.appendChild(sw);
+    });
+    wrap.appendChild(grid);
+    wrap.appendChild(nameEl);
+  }
+
+  body.appendChild(wrap);
+  updateSummary();
+}
+
+/* ── AUSWAHL ── */
+function selectOption(key, value, stepIdx){
+  state[key] = value;
+
+  document.querySelectorAll('.opt-card').forEach(card => {
+    const label = card.querySelector('.opt-label').textContent;
+    card.classList.toggle('selected', label === value.replace(/_/g,' '));
+  });
+
+  if (key !== 'Bezug') updateViewer();
+  updateSummary();
+  syncUrl();
+
+  clearTimeout(advanceTimer);
+  if (stepIdx < STEPS.length - 1) {
+    advanceTimer = setTimeout(() => renderStep(stepIdx + 1), 420);
+  }
+}
+
+/* ── ZUSAMMENFASSUNG ── */
+function updateSummary(){
+  const sum = document.getElementById('summary');
+  sum.innerHTML = '';
+  const done = STEPS.slice(0, currentStep).filter(s => state[s.key] !== null);
+  if (!done.length) return;
+
+  const box = document.createElement('div');
+  box.className = 'sum-inner';
+  const lab = document.createElement('div');
+  lab.className = 'sum-label';
+  lab.textContent = 'Gewählt';
+  box.appendChild(lab);
+
+  done.forEach(step => {
+    const val = state[step.key];
+    const label = step.key === 'Bezug'
+      ? val.replace(/Plano_\d+_/, '').replace(/_/g,' ')
+      : val.replace(/_/g,' ');
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `${step.key}: <b>${label}</b>`;
+    chip.addEventListener('click', () => {
+      clearTimeout(advanceTimer);
+      renderStep(STEPS.findIndex(s => s.key === step.key));
+    });
+    box.appendChild(chip);
+  });
+  sum.appendChild(box);
+}
+
+/* ── TOAST ── */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('visible'), 4000);
+}
+
+/* ── AR ──
+   AR ist in dieser Demo nur dort verfuegbar, wo das Geraet es traegt.
+   Ist es das nicht, wird der Knopf deaktiviert statt ins Leere zu fuehren. */
+function arAvailable(){ return mv && mv.canActivateAR === true; }
+
+function updateArButton(){
+  const btn = document.getElementById('btn-ar');
+  const note = document.getElementById('ar-note');
+  if (!btn) return;
+  const ok = arAvailable();
+  btn.disabled = !ok;
+  btn.classList.toggle('is-disabled', !ok);
+  btn.title = ok
+    ? 'Modell in Augmented Reality anzeigen'
+    : 'In dieser Demo nur auf iPhone und iPad verfügbar';
+  if (note) note.hidden = ok;
+}
+
+function doAR(){
+  if (!arAvailable()) {
+    toast('AR ist in dieser Demo nur auf iPhone und iPad verfügbar');
+    return;
+  }
+  mv.activateAR();
+}
+
+/* ── TEILEN ──
+   Baut die URL aus den tatsaechlich getroffenen Entscheidungen.
+   Nicht gewaehlte Schritte tauchen nicht auf, der Link sagt damit die
+   Wahrheit ueber den Stand der Konfiguration. */
+function buildShareUrl(){
+  const url = new URL(window.location.href);
+  url.search = '';
+  STEPS.forEach(step => {
+    if (state[step.key] !== null) url.searchParams.set(step.key, state[step.key]);
+  });
+  return url.toString();
+}
+
+/* Schreibt das Ergebnis in die Adresszeile, sobald alle vier Schritte
+   entschieden sind. replaceState statt pushState: kein History-Eintrag,
+   der Zurueck-Knopf bleibt benutzbar. */
+function syncUrl(){
+  if (!STEPS.every(s => state[s.key] !== null)) return;
+  try { history.replaceState(null, '', buildShareUrl()); } catch (e) { /* egal */ }
+}
+
+/* Dreistufig, mit Fehlerbehandlung auf jeder Stufe.
+   Letzte Stufe zeigt die URL sichtbar an, statt still zu scheitern. */
+function doShare(){
+  const url = buildShareUrl();
+
+  const showUrl = () => {
+    const box = document.getElementById('share-url');
+    box.textContent = url;
+    box.hidden = false;
+    const r = document.createRange();
+    r.selectNodeContents(box);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    toast('Teilen nicht erlaubt, Link steht unten zum Kopieren');
+  };
+
+  const tryClipboard = () => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { showUrl(); return; }
+    navigator.clipboard.writeText(url).then(
+      () => toast('Link kopiert'),
+      () => showUrl()
+    );
+  };
+
+  if (navigator.share) {
+    let p;
+    try { p = navigator.share({ title:'Vitra ID Chair Konfiguration', url }); }
+    catch (e) { tryClipboard(); return; }
+    Promise.resolve(p).then(
+      () => {},
+      (err) => { if (err && err.name === 'AbortError') return; tryClipboard(); }
+    );
+    return;
+  }
+  tryClipboard();
+}
+
+/* Herkunft sichtbar machen: Version steht auf der Buehne, nicht nur im Kopf. */
+document.getElementById('engine').textContent =
+  `model-viewer · WebGL · OpenUSD · USDconfig ${PLAYER_VERSION}`;
+
+/* ── START ── */
+readStateFromUrl();
+syncUrl();
+updateViewer();
+renderStep(0);
+</script>
+</body>
+</html>
