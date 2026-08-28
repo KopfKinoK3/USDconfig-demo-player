@@ -362,15 +362,21 @@ function readStateFromUrl() {
   });
 }
 
+/* ── ASSET-BASIS ── */
+/* Leer heisst: Dateien liegen neben dieser HTML. Wird die Datei woanders
+   gehostet, traegt diese Konstante die absolute Basis-URL. Einzige Stelle,
+   an der sich eine ausgelagerte Kopie unterscheiden muss. */
+const ASSET_BASE = '';
+
 /* ── RESOLVE GLB ── */
 function resolveGlb() {
   const s = eff('Sitzform').toLowerCase();
   const l = eff('Lehne').toLowerCase();
   const a = eff('Armlehnen').toLowerCase().replace(/ /g,'_');
-  return `assets/product-${s}-${l}-${a}.glb`;
+  return `${ASSET_BASE}assets/product-${s}-${l}-${a}.glb`;
 }
 function resolveUsdz() {
-  return 'assets/chair-master.usdz';
+  return `${ASSET_BASE}assets/chair-master.usdz`;
 }
 
 /* ── MODEL VIEWER ── */
