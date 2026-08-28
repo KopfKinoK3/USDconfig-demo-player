@@ -1,6 +1,52 @@
 # Changelog
 
-## v1.1.8 — 2026-08-21
+## v1.3.0 — 2026-08-28
+
+**Datenebenen A1 und A2.** Der Schritt von Ebene 2 auf Ebene 4 der Zieldefinition aus der
+Agentic-Roadmap. Umgesetzt in einer eigenen Datei, damit der von Sebastian Grillo geprüfte
+Stand unangetastet bleibt.
+
+- **A1, typisierte Werte je Option.** `base` am Produkt trägt absolute Werte, `delta` an einer
+  Option den Beitrag dieser Wahl. Zwei getrennte Schlüssel statt eines Schalters, der falsch
+  stehen kann. Alle Werte sind Ganzzahlen mit optionalem `scale`, bei Geldbeträgen Pflicht.
+  Preise tragen einen Modus: `listenpreis`, `groessenordnung` oder `ausgeblendet`. Der dritte
+  Fall sagt „es gibt einen Preis, er wird nicht ausgeliefert" und ist damit etwas anderes als
+  ein fehlendes Feld.
+- **A2, Regel-Layer als Daten.** Vier Typen neben dem Options-Baum, nicht im Code:
+  `requires`, `excludes`, `bundle`, `affects`. `excludes` gilt symmetrisch, die Gegenregel
+  wird nicht geschrieben. `if` und `then` bedeuten immer UND. Feste Auswertungsreihenfolge,
+  damit zwei korrekte Auswerter dasselbe Ergebnis liefern.
+- **Neu:** `rules-demo.html`, `data/buerostuhl-demo.json`, `test/a1a2.js`.
+- **Unverändert:** `wizard.html`, `index.html`, `deploy/`. Per `git diff` bestätigt.
+
+Der Regel-Auswerter steht als reine Funktion inline im Player, zwischen `@pure-start` und
+`@pure-end`, und wird vom Test per `vm` herausgeschnitten und in Node ausgeführt. Eine Quelle
+für Rechen- und Regellogik, kein Bundler, keine Duplikation.
+
+Alle Zahlen und Regeln der Demo sind Beispielwerte. Der Datensatz trägt `"demo": true`, die
+Preiszeile heißt `Demo-Preis`, die Zusammenfassung `Demo-Konfiguration`. Wer nur die Zahl
+sieht, muss auch den Hinweis sehen.
+
+Abnahme: A1 7 von 7, A2 8 von 8, insgesamt 21 von 21 Tests grün. Bei fehlendem oder kaputtem
+Datensatz startet der Player mit einem Konfigurator ohne Werte, statt weiß zu bleiben.
+
+Commit `6367c38`.
+
+### Versionsnummer
+
+v1.3.0 war in der Master-Roadmap für den Plattform-Ausbau reserviert. Der Bezeichner ist hier
+vergeben worden, der Plattform-Ausbau heißt seit dem 28.08.2026 v1.4.0. Ausgeliefertes
+schlägt Geplantes.
+
+## v1.1.9 — 2026-08-28
+
+`ASSET_BASE` als einzige Stelle, an der sich eine ausgelagerte Fassung des Players
+unterscheidet. Verhalten unverändert, die Konstante ist leer. Ohne sie hätte die Fassung auf
+visales.de verstreute absolute URLs, und die beiden Player würden auseinanderlaufen.
+
+Commit `1b29d1f`.
+
+## v1.1.8 — 2026-08-28
 
 **Agentic-Hotfix.** Ausgelöst durch den Prüfbericht Sebastian Grillo vom 20.08.2026, der den
 Player gegen einen Konzernkonfigurator getestet hat. Befund: der Options-Baum ist strukturell
@@ -77,11 +123,22 @@ Baseline-Stand `5fffa47`. Bestanden heißt grün auf dem neuen Stand und rot auf
 Ergebnis: 7 von 7 grün auf v1.1.8, 0 von 7 auf der Baseline, plus separate Prüfungen für H2 und
 für beide Landingpages.
 
-## v1.1.4 bis v1.1.7 — reserviert, nicht released
+## v1.1.4 bis v1.1.7
 
-Die Master-Roadmap in `USDconfig V1.x/ROADMAP.md` hält diese Nummern für andere Sprints:
-Generator-baseColor-Fix im Backend-Repo, `<model>`-Tag via Netlify, ADR-Extraktion, generischer
-Wizard. Keiner davon ist ausgeliefert. Die Lücke in diesem Changelog ist beabsichtigt.
+**Korrigiert am 28.08.2026.** Eine frühere Fassung dieses Eintrags behauptete, v1.1.4 bis
+v1.1.7 seien reserviert und nicht released. Das stimmt für v1.1.5 bis v1.1.7, nicht für
+v1.1.4.
+
+- **v1.1.4, v1.1.4b, v1.1.4c** sind am 11.05.2026 released, alle drei im privaten Repo
+  `USDconfig-backend`, nicht hier. Inhalt: Generator-baseColor-Fix und zwei PBR-Nachbesserungen.
+  v1.1.4c ist visuell nicht abgenommen, ein Dateigrößen-Delta von rund 20 Prozent ist offen.
+- **v1.1.4d** ist der offene Folgesprint dazu, Byte-Diff-Diagnose.
+- **v1.1.5 bis v1.1.7** sind reserviert und nicht released: model-tag aktivieren,
+  ADR-Extraktion, generischer Wizard.
+
+Ursache des Fehlers: Für die erste Fassung wurde `USDconfig V1.x/ROADMAP.md` gelesen, die
+v1.1.4 seit Mai als „nächster Sprint" führte. Die Wahrheitsquelle für Status ist laut ihrem
+eigenen Kopf aber `BACKLOG.md`, und dort stehen die drei Releases korrekt.
 
 ## v1.1.3 — 2026-05-11
 
