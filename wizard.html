@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>USDconfig Wizard · viSales</title>
+<meta name="description" content="Vitra ID Chair Schritt für Schritt konfigurieren. Ergebnis als Link weitergeben, OpenUSD-basiert, ohne App.">
+<link rel="canonical" href="https://kopfkinok3.github.io/USDconfig-demo-player/wizard.html">
+<!-- Vorschau beim Teilen. Crawler fuehren kein JavaScript aus, das Bild ist
+     deshalb fest und zeigt nicht die jeweils geteilte Konfiguration. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="viSales USDconfig">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://kopfkinok3.github.io/USDconfig-demo-player/wizard.html">
+<meta property="og:title" content="USDconfig Wizard · Vitra ID Chair">
+<meta property="og:description" content="Schritt für Schritt konfigurieren, Ergebnis als Link weitergeben. OpenUSD-basiert, ohne App.">
+<meta property="og:image" content="https://kopfkinok3.github.io/USDconfig-demo-player/assets/og-usdconfig.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta property="og:image:alt" content="USDconfig Produktkonfigurator, Bürodrehstuhl in 3D">
+<meta name="twitter:card" content="summary_large_image">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <style>
 :root {
@@ -141,6 +157,39 @@ model-viewer{width:100%;height:100%}
 .btn-secondary{background:var(--card);color:var(--text-hi);border:1px solid var(--border)}
 .btn-secondary:hover{background:var(--hover)}
 
+/* Deaktivierter Knopf, DEMO-Kennzeichnung, Hinweis */
+.btn.is-disabled,.btn:disabled{
+  background:var(--card);color:var(--text-lo);border:1px solid var(--border);
+  cursor:not-allowed;
+}
+.btn.is-disabled:hover,.btn:disabled:hover{opacity:1}
+.btn.is-disabled:active,.btn:disabled:active{transform:none}
+.btn-tag{
+  font-size:9px;font-weight:700;letter-spacing:.08em;
+  padding:2px 6px;border-radius:999px;margin-left:2px;
+  background:rgba(0,0,0,.06);color:var(--text-mid);
+}
+#ar-note{
+  font-size:10.5px;color:var(--text-lo);text-align:center;
+  margin:-4px 0 2px;line-height:1.4;
+}
+#share-url{
+  font-size:11px;line-height:1.45;word-break:break-all;user-select:all;
+  padding:9px 11px;border-radius:10px;
+  background:var(--card);border:1px solid var(--border);color:var(--text-mid);
+}
+
+/* Toast */
+#toast{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);
+  max-width:min(560px,88vw);z-index:50;
+  padding:10px 16px;border-radius:999px;
+  background:rgba(26,26,26,.94);color:#fff;
+  font-size:12.5px;font-weight:500;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+}
+#toast.visible{opacity:1;transform:translate(-50%,0)}
+
 /* Slide transitions */
 .step-slide{animation:slideIn .25s ease}
 @keyframes slideIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
@@ -200,16 +249,20 @@ model-viewer{width:100%;height:100%}
     <div id="step-body"></div>
     <div id="summary"></div>
     <div id="footer">
-      <button class="btn btn-primary" id="btn-ar" onclick="doAR()">
+      <button class="btn btn-primary is-disabled" id="btn-ar" onclick="doAR()" disabled>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12H3a9 9 0 0018 0h-2M12 3v9m0 0l-3-3m3 3l3-3"/></svg>
         In AR anzeigen
+        <span class="btn-tag">DEMO</span>
       </button>
+      <div id="ar-note">AR in dieser Demo nur auf iPhone und iPad</div>
       <button class="btn btn-secondary" id="btn-share" onclick="doShare()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Konfiguration teilen
       </button>
+      <div id="share-url" hidden></div>
     </div>
   </div>
+  <div id="toast"></div>
 
 </div>
 <script>
@@ -266,20 +319,54 @@ const STEPS = [
 ];
 
 /* ── STATE ── */
-const state = {
+/* state haelt NUR getroffene Entscheidungen. null heisst: noch nicht gewaehlt.
+   DEFAULTS ist der Anzeigefallback fuer den Viewer, damit vor der ersten
+   Entscheidung trotzdem ein Stuhl zu sehen ist. Beides bewusst getrennt:
+   nur so ist von aussen unterscheidbar, ob eine Option gewaehlt wurde oder
+   ob sie nur zufaellig dem Standard entspricht. */
+const DEFAULTS = {
   Sitzform: 'kontur',
   Lehne: 'soft',
   Armlehnen: 'ohne',
   Bezug: Object.keys(BEZUG_COLORS)[0],
 };
+const state = {
+  Sitzform: null,
+  Lehne: null,
+  Armlehnen: null,
+  Bezug: null,
+};
+/* Effektiver Wert fuer die Darstellung: Auswahl, sonst Standard. */
+function eff(key) {
+  return state[key] !== null ? state[key] : DEFAULTS[key];
+}
 let currentStep = 0;
 let advanceTimer = null;
 
+/* ── URL-PARAMETER LESEN ── */
+/* Liest den Zustand aus der Adresszeile, bevor der erste Schritt gerendert wird.
+   Unbekannte oder fehlende Werte fallen still auf den Standard zurueck. */
+function readStateFromUrl() {
+  let params;
+  try {
+    params = new URLSearchParams(window.location.search);
+  } catch (e) {
+    return;
+  }
+  STEPS.forEach(step => {
+    const raw = params.get(step.key);
+    if (raw === null || raw === '') return;
+    const needle = raw.trim().toLowerCase().replace(/ /g, '_');
+    const match = step.options.find(opt => opt.toLowerCase() === needle);
+    if (match) state[step.key] = match;
+  });
+}
+
 /* ── RESOLVE GLB ── */
 function resolveGlb() {
-  const s = state.Sitzform.toLowerCase();
-  const l = state.Lehne.toLowerCase();
-  const a = state.Armlehnen.toLowerCase().replace(/ /g,'_');
+  const s = eff('Sitzform').toLowerCase();
+  const l = eff('Lehne').toLowerCase();
+  const a = eff('Armlehnen').toLowerCase().replace(/ /g,'_');
   return `assets/product-${s}-${l}-${a}.glb`;
 }
 function resolveUsdz() {
@@ -291,9 +378,10 @@ const mv = document.getElementById('mv');
 mv.addEventListener('load', () => {
   document.getElementById('loading').classList.add('hidden');
   /* Apply Bezug variant */
-  if (mv.availableVariants?.includes(state.Bezug)) {
-    mv.variantName = state.Bezug;
+  if (mv.availableVariants?.includes(eff('Bezug'))) {
+    mv.variantName = eff('Bezug');
   }
+  updateArButton();
 });
 
 function updateViewer() {
@@ -304,8 +392,8 @@ function updateViewer() {
   }
   const usdz = resolveUsdz();
   if (usdz) mv.setAttribute('ios-src', usdz);
-  if (mv.availableVariants?.includes(state.Bezug)) {
-    mv.variantName = state.Bezug;
+  if (mv.availableVariants?.includes(eff('Bezug'))) {
+    mv.variantName = eff('Bezug');
   }
 }
 
@@ -355,7 +443,9 @@ function renderStep(idx) {
     nameEl.id = 'color-name';
 
     const sel = state[step.key];
-    nameEl.textContent = sel ? sel.replace(/Plano_\d+_/, '').replace(/_/g, ' ') : '';
+    nameEl.textContent = sel
+      ? sel.replace(/Plano_\d+_/, '').replace(/_/g, ' ')
+      : 'noch keine Farbe gewählt';
 
     Object.entries(BEZUG_COLORS).forEach(([key, hex]) => {
       const sw = document.createElement('div');
@@ -369,6 +459,7 @@ function renderStep(idx) {
         nameEl.textContent = key.replace(/Plano_\d+_/, '').replace(/_/g, ' ');
         if (mv.availableVariants?.includes(key)) mv.variantName = key;
         updateSummary();
+        syncUrl();
       });
       grid.appendChild(sw);
     });
@@ -398,6 +489,7 @@ function selectOption(key, value, stepIdx) {
     updateViewer();
   }
   updateSummary();
+  syncUrl();
 
   /* Auto-advance to next step */
   clearTimeout(advanceTimer);
@@ -427,34 +519,106 @@ function updateSummary() {
   });
 }
 
+/* ── TOAST ── */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('visible'), 4000);
+}
+
 /* ── AR ── */
+/* AR ist in dieser Demo nur dort verfuegbar, wo das Geraet es traegt.
+   Ist es das nicht, wird der Knopf deaktiviert statt ins Leere zu fuehren. */
+function arAvailable() {
+  return mv && mv.canActivateAR === true;
+}
+
+function updateArButton() {
+  const btn = document.getElementById('btn-ar');
+  const note = document.getElementById('ar-note');
+  if (!btn) return;
+  const ok = arAvailable();
+  btn.disabled = !ok;
+  btn.classList.toggle('is-disabled', !ok);
+  btn.title = ok
+    ? 'Modell in Augmented Reality anzeigen'
+    : 'In dieser Demo nur auf iPhone und iPad verfügbar';
+  if (note) note.hidden = ok;
+}
+
 function doAR() {
-  if (mv.canActivateAR) { mv.activateAR(); return; }
-  const usdz = resolveUsdz();
-  if (usdz) window.location.href = usdz;
+  if (!arAvailable()) {
+    toast('AR ist in dieser Demo nur auf iPhone und iPad verfügbar');
+    return;
+  }
+  mv.activateAR();
 }
 
 /* ── SHARE ── */
-function doShare() {
+/* Baut die URL aus den tatsaechlich getroffenen Entscheidungen.
+   Nicht gewaehlte Schritte tauchen nicht auf, der Link sagt damit die
+   Wahrheit ueber den Stand der Konfiguration. */
+function buildShareUrl() {
   const url = new URL(window.location.href);
   url.search = '';
-  url.searchParams.set('Sitzform', state.Sitzform);
-  url.searchParams.set('Lehne', state.Lehne);
-  url.searchParams.set('Armlehnen', state.Armlehnen);
-  url.searchParams.set('Bezug', state.Bezug);
+  STEPS.forEach(step => {
+    if (state[step.key] !== null) url.searchParams.set(step.key, state[step.key]);
+  });
+  return url.toString();
+}
+
+/* Schreibt das Ergebnis in die Adresszeile, sobald alle vier Schritte
+   entschieden sind. Waehrend der Konfiguration bleibt die Adresszeile ruhig.
+   replaceState statt pushState: kein History-Eintrag, der Zurueck-Knopf
+   bleibt benutzbar. */
+function syncUrl() {
+  if (!STEPS.every(s => state[s.key] !== null)) return;
+  try { history.replaceState(null, '', buildShareUrl()); } catch (e) { /* egal */ }
+}
+
+/* Dreistufig, mit Fehlerbehandlung auf jeder Stufe.
+   Letzte Stufe zeigt die URL sichtbar an, statt still zu scheitern. */
+function doShare() {
+  const url = buildShareUrl();
+
+  const showUrl = () => {
+    const box = document.getElementById('share-url');
+    box.textContent = url;
+    box.hidden = false;
+    const r = document.createRange();
+    r.selectNodeContents(box);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    toast('Teilen nicht erlaubt, Link steht unten zum Kopieren');
+  };
+
+  const tryClipboard = () => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { showUrl(); return; }
+    navigator.clipboard.writeText(url).then(
+      () => toast('Link kopiert ✓'),
+      () => showUrl()
+    );
+  };
+
   if (navigator.share) {
-    navigator.share({ title: 'Vitra ID Chair Konfiguration', url: url.toString() });
-  } else {
-    navigator.clipboard.writeText(url.toString()).then(() => {
-      const btn = document.getElementById('btn-share');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✓ Link kopiert';
-      setTimeout(() => btn.innerHTML = orig, 2000);
-    });
+    let p;
+    try { p = navigator.share({ title: 'Vitra ID Chair Konfiguration', url }); }
+    catch (e) { tryClipboard(); return; }
+    Promise.resolve(p).then(
+      () => {},
+      (err) => { if (err && err.name === 'AbortError') return; tryClipboard(); }
+    );
+    return;
   }
+  tryClipboard();
 }
 
 /* ── INIT ── */
+readStateFromUrl();
+syncUrl();
 updateViewer();
 renderStep(0);
 </script>
