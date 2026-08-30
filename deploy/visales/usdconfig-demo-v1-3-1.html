@@ -2,24 +2,35 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+
+<!-- Eigenstaendige Demo-Seite fuer visales.de. Oberflaeche und Logik
+     unveraendert aus rules-demo.html im Repo USDconfig-demo-player.
+     Abweichungen ausschliesslich fuer die Auslieferung: ASSET_BASE,
+     PLAYER_VERSION, canonical, og:url, og:image.
+     Aenderungen an Oberflaeche oder Logik gehoeren zuerst ins Repo. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>USDconfig Regeln &amp; Werte Demo · viSales</title>
+<title>USDconfig Demo · Regeln und Werte · Vitra ID Chair · viSales</title>
 <meta name="description" content="Vitra ID Chair Schritt für Schritt konfigurieren, mit typisierten Werten und Regeln als Daten. OpenUSD-basiert, ohne App.">
-<link rel="canonical" href="https://kopfkinok3.github.io/USDconfig-demo-player/rules-demo.html">
+<link rel="canonical" href="https://visales.de/usdconfig-demo-v1-3-1.html">
 <!-- Vorschau beim Teilen. Crawler fuehren kein JavaScript aus, das Bild ist
      deshalb fest und zeigt nicht die jeweils geteilte Konfiguration. -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="viSales USDconfig">
+<meta property="og:site_name" content="viSales">
 <meta property="og:locale" content="de_DE">
-<meta property="og:url" content="https://kopfkinok3.github.io/USDconfig-demo-player/rules-demo.html">
+<meta property="og:url" content="https://visales.de/usdconfig-demo-v1-3-1.html">
 <meta property="og:title" content="USDconfig Regeln &amp; Werte Demo · Vitra ID Chair">
 <meta property="og:description" content="Schritt für Schritt konfigurieren, mit typisierten Werten und Regeln als Daten. OpenUSD-basiert, ohne App.">
-<meta property="og:image" content="https://kopfkinok3.github.io/USDconfig-demo-player/assets/og-usdconfig.png">
+<meta property="og:image" content="https://visales.de/assets/images/og-usdconfig-demo.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta property="og:image:alt" content="USDconfig Produktkonfigurator, Bürodrehstuhl in 3D">
 <meta name="twitter:card" content="summary_large_image">
+
+<!-- Ausgelieferte Player-Version. Muss mit dem Dateinamen, mit dem Tag im
+     Repo USDconfig-demo-player und mit der Anzeige auf der Buehne
+     uebereinstimmen. -->
+<meta name="usdconfig-version" content="1.3.1">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <style>
 :root {
@@ -131,16 +142,9 @@ model-viewer{width:100%;height:100%}
 .swatch{
   aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;
   transition:transform .12s,border-color .12s;
-  position:relative;overflow:hidden;
 }
 .swatch:hover{transform:scale(1.18)}
 .swatch.selected{border-color:var(--amber);transform:scale(1.12)}
-.opt-card--blocked{opacity:.55;cursor:not-allowed}
-.opt-card--blocked .opt-check{opacity:1;transform:none;background:var(--text-mid)}
-.opt-rule--blocked{color:var(--red)}
-.swatch--blocked{opacity:.45;cursor:not-allowed}
-.swatch--blocked:hover{transform:none}
-.swatch--blocked::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 44%,var(--text-mid) 44%,var(--text-mid) 56%,transparent 56%)}
 .color-name{
   font-size:11px;color:var(--text-mid);text-align:center;
   padding:8px 0 0;min-height:28px;line-height:1.3;
@@ -258,7 +262,7 @@ model-viewer{width:100%;height:100%}
 
   <!-- Viewer -->
   <div id="viewer-wrap">
-    <div class="badge">model-viewer · WebGL</div>
+    <div class="badge" id="engine-badge">model-viewer · WebGL</div>
     <model-viewer
       id="mv"
       camera-controls
@@ -382,44 +386,6 @@ function sumField(dataset, chosenOptions, fieldKey) {
   return { available: true, mode: base.mode || null, value, unit: base.unit, scale: base.scale || 0, complete };
 }
 
-/* Bezeichner fuer Hinweise und Sperren: "<Schritt-Label> <Options-Label>",
-   bei Paketen nur das Options-Label. Einmal gebaut, von Sperren und
-   Paket-Konflikten gemeinsam benutzt. */
-function optionNames(dataset) {
-  const stepOf = new Map(), optOf = new Map();
-  ((dataset && dataset.steps) || []).forEach(step => (step.options || []).forEach(opt => {
-    stepOf.set(opt.code, step);
-    optOf.set(opt.code, opt);
-  }));
-  const labelOf = c => {
-    const step = stepOf.get(c), opt = optOf.get(c);
-    if (!opt) return c;
-    return (step && step.key !== 'Pakete') ? step.label + ' ' + opt.label : opt.label;
-  };
-  const stepKeyOf = c => { const step = stepOf.get(c); return step ? step.key : null; };
-  return { labelOf, stepKeyOf, has: c => optOf.has(c), join: codes => codes.map(labelOf).join(' und ') };
-}
-
-/* Paket-Konflikte (SPEC-A2, "Sperren mit Grund", seit v1.3.2): Paket gewaehlt
-   und dazu eine Alternative zu einem Paket-Inhalt im selben Schritt. Liefert
-   Verstoesse mit erzeugter Meldung; die Kennzeichnung "Beispielregel" haengt
-   am demo-Schalter des Datensatzes. */
-function bundleConflicts(dataset, selectedCodes) {
-  const names = optionNames(dataset);
-  const out = [];
-  ((dataset && dataset.rules) || []).filter(r => r.type === 'bundle' && selectedCodes.includes(r.code)).forEach(r => {
-    (r.contains || []).forEach(c => {
-      const s = selectedCodes.find(x => x !== c && names.stepKeyOf(x) === names.stepKeyOf(c));
-      if (s) out.push({
-        type: 'bundle',
-        message: ((dataset && dataset.demo) ? 'Beispielregel: ' : '') + names.labelOf(r.code) + ' legt ' + names.labelOf(c) + ' fest, ' + names.labelOf(s) + ' ist damit nicht wählbar.',
-        bundle: r.code, contained: c, chosen: s,
-      });
-    });
-  });
-  return out;
-}
-
 /* Reine Auswertung: Datensatz plus gewaehlte Codes rein, Summen,
    Verstoesse, gesperrte Optionen raus. Reihenfolge nach Spec A2:
    1. Buendel aufloesen, 2. excludes, 3. requires, 4. summieren,
@@ -439,8 +405,7 @@ function evaluateConfiguration(dataset, selectedCodes) {
   const has = code => effectiveSelected.includes(code);
 
   /* 2 + 3. excludes und requires, Verstoesse sammeln statt abbrechen */
-  /* 1b. Paket-Konflikte (seit v1.3.2 ein Verstoss, siehe Spec), dann excludes und requires */
-  const violations = bundleConflicts(dataset, selectedCodes);
+  const violations = [];
   rules.filter(r => r.type === 'excludes').forEach(r => {
     const ifAll = (r.if || []).every(has);
     const thenAll = (r.then || []).every(has);
@@ -543,7 +508,6 @@ function ruleHintsForOption(dataset, code) {
       const C = r.contains || [];
       if (r.code === code) add('bundle', 'enthält ' + join(C));
       if (C.includes(code)) add('bundle', 'im ' + labelOf(r.code) + ' enthalten');
-      C.forEach(c => { if (c !== code && siblingsOf(c).includes(code)) add('bundle', 'mit ' + labelOf(r.code) + ' festgelegt auf ' + labelOf(c)); });
     } else if (r.type === 'affects') {
       if (A.includes(code)) {
         const others = A.filter(a => a !== code);
@@ -555,56 +519,8 @@ function ruleHintsForOption(dataset, code) {
   return hints;
 }
 
-/* Sperren mit Grund (SPEC-A2, "Sperren mit Grund", seit v1.3.2). Reine Funktion:
-   Datensatz, gewaehlte Codes und ein Kandidat rein; heraus kommt, ob der
-   Kandidat angesichts der Auswahl gesperrt ist, mit Gruenden und den
-   blockierenden Codes. Was-waere-wenn: die eigene Stufe des Kandidaten wird
-   in der Auswahl durch ihn ersetzt, dann regelweise geprueft. affects sperrt nie. */
-function availabilityFor(dataset, selectedCodes, code) {
-  const names = optionNames(dataset);
-  if (!names.has(code)) return { blocked: false, reasons: [] };
-  const rules = (dataset && dataset.rules) || [];
-  const selected = (selectedCodes || []).filter(Boolean);
-  const myStep = names.stepKeyOf(code);
-  const candidate = selected.filter(c => names.stepKeyOf(c) !== myStep).concat([code]);
-  const has = c => candidate.includes(c);
-  const chosenAlternativeTo = c => candidate.find(x => x !== c && names.stepKeyOf(x) === names.stepKeyOf(c));
-  const reasons = [];
-  const add = (type, text, by) => { if (!reasons.some(r => r.text === text)) reasons.push({ type, text, by }); };
-
-  rules.forEach(r => {
-    const A = r.if || [], B = r.then || [];
-    if (r.type === 'excludes') {
-      const inA = A.includes(code), inB = B.includes(code);
-      if ((inA || inB) && A.every(has) && B.every(has)) {
-        const other = (inA ? B : A).filter(c => c !== code);
-        add('excludes', 'nicht mit ' + names.join(other), other);
-      }
-    } else if (r.type === 'requires') {
-      if (A.includes(code) && A.every(has)) {
-        const chosen = B.filter(b => !has(b)).map(chosenAlternativeTo).filter(Boolean);
-        if (chosen.length) add('requires', 'braucht ' + names.join(B) + ', gewählt ist ' + names.join(chosen), chosen);
-      }
-      if (!A.includes(code) && A.every(has) && B.some(b => b !== code && names.stepKeyOf(b) === myStep)) {
-        add('requires', 'nicht mit ' + names.join(A), A);
-      }
-    } else if (r.type === 'bundle') {
-      const C = r.contains || [];
-      if (code !== r.code && has(r.code)) {
-        const c = C.find(x => x !== code && names.stepKeyOf(x) === myStep);
-        if (c) add('bundle', 'mit ' + names.labelOf(r.code) + ' festgelegt auf ' + names.labelOf(c), [r.code]);
-      }
-      if (code === r.code) {
-        const chosen = C.map(chosenAlternativeTo).filter(Boolean);
-        if (chosen.length) add('bundle', 'nicht mit ' + names.join(chosen) + ', das Paket enthält ' + names.join(C.filter(c => chosenAlternativeTo(c))), chosen);
-      }
-    }
-  });
-  return { blocked: reasons.length > 0, reasons };
-}
-
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { loadDataset, evaluateConfiguration, sumField, indexOptionsByCode, ruleHintsForOption, availabilityFor, bundleConflicts, optionNames };
+  module.exports = { loadDataset, evaluateConfiguration, sumField, indexOptionsByCode, ruleHintsForOption };
 }
 /* @pure-end */
 
@@ -700,7 +616,14 @@ function readStateFromUrl() {
 }
 
 /* ── ASSET-BASIS ── */
-const ASSET_BASE = '';
+/* Modelle und Datensatz liegen auf GitHub Pages. Einziger der drei
+   gemessenen Hosts, der USDZ und GLB korrekt typisiert und CORS offen
+   ausliefert (gemessen 21. und 28.08.2026). */
+const ASSET_BASE = 'https://kopfkinok3.github.io/USDconfig-demo-player/';
+
+/* Ausgelieferte Version, an drei Stellen sichtbar: Dateiname,
+   meta usdconfig-version im Kopf, Badge auf der Buehne. */
+const PLAYER_VERSION = '1.3.1';
 
 /* ── RESOLVE GLB ── */
 function resolveGlb() {
@@ -745,11 +668,6 @@ function recompute() {
 
 function hintPrefix() { return (DATASET && DATASET.demo) ? 'Regel (Demo): ' : 'Regel: '; }
 function hintsFor(code) { return DATASET ? ruleHintsForOption(DATASET, code) : []; }
-function blockPrefix() { return (DATASET && DATASET.demo) ? 'Gesperrt (Demo): ' : 'Gesperrt: '; }
-function availFor(code) {
-  if (!DATASET) return { blocked: false, reasons: [] };
-  return availabilityFor(DATASET, STEPS.map(s => state[s.key]).filter(Boolean), code);
-}
 
 function formatMoney(amountRaw, unit, scale) {
   const amount = amountRaw / Math.pow(10, scale || 0);
@@ -818,19 +736,11 @@ function renderStep(idx) {
     step.options.forEach(opt => {
       const hex = BEZUG_COLORS[opt.code] || '#ccc';
       const hints = hintsFor(opt.code);
-      const avail = availFor(opt.code);
       const sw = document.createElement('div');
-      sw.className = 'swatch' + (state[step.key] === opt.code ? ' selected' : '') + (hints.length ? ' swatch--rule' : '') + (avail.blocked ? ' swatch--blocked' : '');
+      sw.className = 'swatch' + (state[step.key] === opt.code ? ' selected' : '') + (hints.length ? ' swatch--rule' : '');
       sw.style.background = hex;
-      sw.title = avail.blocked
-        ? opt.label + '. ' + blockPrefix() + avail.reasons.map(r => r.text).join('; ')
-        : (hints.length ? opt.label + '. ' + hintPrefix() + hints.map(h => h.text).join('; ') : opt.label);
-      if (avail.blocked) {
-        sw.setAttribute('aria-disabled', 'true');
-        sw.dataset.blockedBy = avail.reasons.flatMap(r => r.by).join(' ');
-      }
+      sw.title = hints.length ? opt.label + '. ' + hintPrefix() + hints.map(h => h.text).join('; ') : opt.label;
       sw.addEventListener('click', () => {
-        if (avail.blocked) { toast(blockPrefix() + opt.label + ' ' + avail.reasons[0].text); return; }
         document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
         sw.classList.add('selected');
         state[step.key] = opt.code;
@@ -840,23 +750,13 @@ function renderStep(idx) {
         syncUrl();
       });
       grid.appendChild(sw);
-      if (avail.blocked) {
-        avail.reasons.forEach(r => {
-          const line = document.createElement('small');
-          line.className = 'opt-rule opt-rule--blocked';
-          line.dataset.ruleType = r.type;
-          line.textContent = blockPrefix() + opt.label + ' ' + r.text;
-          swatchRules.appendChild(line);
-        });
-      } else {
-        hints.forEach(h => {
-          const line = document.createElement('small');
-          line.className = 'opt-rule';
-          line.dataset.ruleType = h.type;
-          line.textContent = hintPrefix() + opt.label + ' ' + h.text;
-          swatchRules.appendChild(line);
-        });
-      }
+      hints.forEach(h => {
+        const line = document.createElement('small');
+        line.className = 'opt-rule';
+        line.dataset.ruleType = h.type;
+        line.textContent = hintPrefix() + opt.label + ' ' + h.text;
+        swatchRules.appendChild(line);
+      });
     });
     wrap.appendChild(grid);
     wrap.appendChild(nameEl);
@@ -865,30 +765,18 @@ function renderStep(idx) {
   } else {
     step.options.forEach(opt => {
       const card = document.createElement('div');
+      card.className = 'opt-card' + (state[step.key] === opt.code ? ' selected' : '');
       const hints = hintsFor(opt.code);
-      const avail = availFor(opt.code);
-      card.className = 'opt-card' + (state[step.key] === opt.code ? ' selected' : '') + (avail.blocked ? ' opt-card--blocked' : '');
-      if (avail.blocked) {
-        card.setAttribute('aria-disabled', 'true');
-        card.dataset.blockedBy = avail.reasons.flatMap(r => r.by).join(' ');
-      }
-      const lines = avail.blocked
-        ? avail.reasons.map(r => `<small class="opt-rule opt-rule--blocked" data-rule-type="${r.type}">${blockPrefix()}${r.text}</small>`)
-        : hints.map(h => `<small class="opt-rule" data-rule-type="${h.type}">${hintPrefix()}${h.text}</small>`);
-      const icon = avail.blocked
-        ? '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="2.5" y1="2.5" x2="9.5" y2="9.5"/><line x1="9.5" y1="2.5" x2="2.5" y2="9.5"/></svg>'
-        : '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>';
       card.innerHTML = `
         ${locked.has(opt.code) ? '<span class="opt-bundle-tag">im Paket enthalten</span>' : ''}
         <span class="opt-text">
           <span class="opt-label">${opt.label}</span>
-          ${lines.join('')}
+          ${hints.map(h => `<small class="opt-rule" data-rule-type="${h.type}">${hintPrefix()}${h.text}</small>`).join('')}
         </span>
-        <span class="opt-check">${icon}</span>`;
-      card.addEventListener('click', () => {
-        if (avail.blocked) { toast(blockPrefix() + opt.label + ' ' + avail.reasons[0].text); return; }
-        selectOption(step.key, opt.code, currentStep);
-      });
+        <span class="opt-check">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+        </span>`;
+      card.addEventListener('click', () => selectOption(step.key, opt.code, currentStep));
       wrap.appendChild(card);
     });
   }
@@ -1072,6 +960,10 @@ async function init() {
     DEFAULTS[s.key] = s.options[0].code;
     state[s.key] = null;
   });
+
+  const badge = document.getElementById('engine-badge');
+  if (badge) badge.textContent =
+    `model-viewer · WebGL · OpenUSD · USDconfig ${PLAYER_VERSION}`;
 
   readStateFromUrl();
   syncUrl();

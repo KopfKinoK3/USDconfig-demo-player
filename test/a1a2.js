@@ -224,6 +224,103 @@ test('A2.8 — jede Beispielregel ist als solche gekennzeichnet', () => {
   });
 });
 
+/* -- A2.9, Regelhinweise an der Option (SPEC-A2, Abschnitt "Regelhinweise") -- */
+const { ruleHintsForOption } = RULES_MODULE;
+/* Der @pure-Block laeuft per vm in einem eigenen Realm, seine Arrays haben ein fremdes
+   Array.prototype; assert/strict deepEqual vergleicht Prototypen, deshalb der Spread in
+   den Test-Realm. */
+const texts = code => [...ruleHintsForOption(REAL_DATASET, code)].map(h => h.text);
+
+test('A2.9.1 — requires: Hinweis an ausloesender, betroffener und alternativer Option', () => {
+  assert.deepEqual(texts('armlehnen_poliert_ring').filter(t => t.startsWith('nur mit')), ['nur mit Sitzform Normal']);
+  assert.deepEqual(texts('sitzform_normal'), ['Voraussetzung für Armlehnen Poliert, Ring']);
+  assert.deepEqual(texts('sitzform_kontur'), ['nicht mit Armlehnen Poliert, Ring']);
+});
+test('A2.9.2 — excludes: Hinweis in beiden Richtungen', () => {
+  assert.ok(texts('lehne_trim').includes('nicht mit Bezugfarbe Gelb Pastellgruen'));
+  assert.deepEqual(texts('Plano_39_gelb_pastellgruen'), ['nicht mit Lehne Trim']);
+});
+test('A2.9.3 — bundle: Paket nennt Inhalt, Inhalt nennt Paket, Alternativen nennen die Festlegung', () => {
+  assert.deepEqual(texts('paket_comfort'), ['enthält Armlehnen Poliert, Ring und Lehne Soft']);
+  assert.deepEqual(texts('lehne_soft'), ['im Paket Comfort enthalten']);
+  assert.ok(texts('armlehnen_poliert_ring').includes('im Paket Comfort enthalten'));
+  assert.deepEqual(texts('kein_paket'), []);
+  assert.deepEqual(texts('armlehnen_ohne'), ['mit Paket Comfort festgelegt auf Armlehnen Poliert, Ring']);
+});
+test('A2.9.4 — affects: Partner und Wirkung mit Vorzeichen als Wort', () => {
+  assert.ok(texts('lehne_trim').includes('zusammen mit Armlehnen Poliert, Ring: Verstellbereich minus 20 mm'));
+  assert.ok(texts('armlehnen_poliert_ring').includes('zusammen mit Lehne Trim: Verstellbereich minus 20 mm'));
+});
+test('A2.9.5 — genau die Optionen mit Regelbezug tragen Hinweise', () => {
+  const withHints = [];
+  REAL_DATASET.steps.forEach(s => s.options.forEach(o => { if (texts(o.code).length) withHints.push(o.code); }));
+  assert.deepEqual(withHints.sort(), ['Plano_39_gelb_pastellgruen', 'armlehnen_ohne', 'armlehnen_exoliert_3d', 'armlehnen_poliert_ring', 'lehne_soft', 'lehne_trim', 'paket_comfort', 'sitzform_kontur', 'sitzform_normal'].sort());
+  assert.deepEqual(texts('Plano_67_cognac'), []);
+});
+test('A2.9.6 — Reihenfolge folgt den Regeln im Datensatz, jeder Hinweis traegt seinen Typ', () => {
+  const hints = [...ruleHintsForOption(REAL_DATASET, 'armlehnen_poliert_ring')];
+  assert.deepEqual(hints.map(h => h.type), ['requires', 'bundle', 'affects']);
+  assert.deepEqual(hints.map(h => h.text), ['nur mit Sitzform Normal', 'im Paket Comfort enthalten', 'zusammen mit Lehne Trim: Verstellbereich minus 20 mm']);
+});
+test('Gegenprobe: die v1.3.0-Auslieferung hat keine Regelhinweise (alter Stand)', () => {
+  const oldHtml = path.join(ROOT, 'deploy', 'visales', 'usdconfig-demo-v1-3-0.html');
+  const oldModule = loadPureModule(oldHtml);
+  assert.ok(oldModule, 'v1.3.0 muss einen @pure-Block haben');
+  assert.equal(typeof oldModule.ruleHintsForOption, 'undefined');
+  assert.equal(/opt-rule/.test(fs.readFileSync(oldHtml, 'utf8')), false);
+});
+
+/* -- A2.10, Sperren mit Grund (SPEC-A2, Abschnitt "Sperren mit Grund") -- */
+const { availabilityFor, bundleConflicts } = RULES_MODULE;
+const av = (sel, code) => { const a = availabilityFor(REAL_DATASET, sel, code); return { blocked: a.blocked, texts: [...a.reasons].map(r => r.text) }; };
+
+test('A2.10.1 — excludes sperrt in beide Richtungen, mit Grund', () => {
+  assert.deepEqual(av(['lehne_trim'], 'Plano_39_gelb_pastellgruen'), { blocked: true, texts: ['nicht mit Lehne Trim'] });
+  assert.deepEqual(av(['Plano_39_gelb_pastellgruen'], 'lehne_trim'), { blocked: true, texts: ['nicht mit Bezugfarbe Gelb Pastellgruen'] });
+  assert.equal(av(['lehne_soft'], 'Plano_39_gelb_pastellgruen').blocked, false);
+});
+test('A2.10.2 — requires sperrt Ausloeser und Alternative, nicht bei offener Voraussetzung', () => {
+  assert.deepEqual(av(['sitzform_kontur'], 'armlehnen_poliert_ring'), { blocked: true, texts: ['braucht Sitzform Normal, gewählt ist Sitzform Kontur'] });
+  assert.deepEqual(av(['armlehnen_poliert_ring'], 'sitzform_kontur'), { blocked: true, texts: ['nicht mit Armlehnen Poliert, Ring'] });
+  assert.equal(av([], 'armlehnen_poliert_ring').blocked, false);
+  assert.equal(av(['sitzform_normal'], 'armlehnen_poliert_ring').blocked, false);
+  assert.equal(av(['armlehnen_poliert_ring'], 'sitzform_normal').blocked, false);
+});
+test('A2.10.3 — bundle sperrt Alternativen und das Paket, in beide Richtungen', () => {
+  assert.deepEqual(av(['paket_comfort'], 'lehne_trim'), { blocked: true, texts: ['mit Paket Comfort festgelegt auf Lehne Soft'] });
+  assert.deepEqual(av(['paket_comfort'], 'armlehnen_ohne'), { blocked: true, texts: ['mit Paket Comfort festgelegt auf Armlehnen Poliert, Ring'] });
+  assert.equal(av(['paket_comfort'], 'lehne_soft').blocked, false);
+  assert.equal(av(['paket_comfort'], 'kein_paket').blocked, false);
+  assert.deepEqual(av(['lehne_trim'], 'paket_comfort'), { blocked: true, texts: ['nicht mit Lehne Trim, das Paket enthält Lehne Soft'] });
+  assert.equal(av(['lehne_soft', 'armlehnen_poliert_ring'], 'paket_comfort').blocked, false);
+  assert.deepEqual(av(['lehne_trim', 'armlehnen_ohne'], 'paket_comfort').texts, ['nicht mit Armlehnen Ohne und Lehne Trim, das Paket enthält Armlehnen Poliert, Ring und Lehne Soft']);
+});
+test('A2.10.4 — affects sperrt nie, ohne Auswahl ist nichts gesperrt', () => {
+  assert.equal(av(['lehne_trim'], 'armlehnen_poliert_ring').blocked, false);
+  assert.equal(av(['lehne_trim', 'sitzform_normal'], 'armlehnen_poliert_ring').blocked, false);
+  REAL_DATASET.steps.forEach(s => s.options.forEach(o => assert.equal(av([], o.code).blocked, false, o.code)));
+});
+test('A2.10.5 — Paket-Konflikt ist ein Verstoss mit Kennzeichnung', () => {
+  const v = [...bundleConflicts(REAL_DATASET, ['paket_comfort', 'lehne_trim'])];
+  assert.equal(v.length, 1);
+  assert.equal(v[0].type, 'bundle');
+  assert.equal(v[0].message, 'Beispielregel: Paket Comfort legt Lehne Soft fest, Lehne Trim ist damit nicht wählbar.');
+  assert.equal([...bundleConflicts(REAL_DATASET, ['paket_comfort', 'lehne_soft'])].length, 0);
+  const full = evaluateConfiguration(REAL_DATASET, ['paket_comfort', 'lehne_trim']);
+  assert.equal([...full.violations].filter(x => x.type === 'bundle').length, 1);
+});
+test('A2.10.6 — gewaehlt und trotzdem gesperrt (Link mit ungueltiger Kombination)', () => {
+  assert.deepEqual(av(['sitzform_kontur', 'armlehnen_poliert_ring'], 'armlehnen_poliert_ring'), { blocked: true, texts: ['braucht Sitzform Normal, gewählt ist Sitzform Kontur'] });
+  assert.deepEqual(av(['sitzform_kontur', 'armlehnen_poliert_ring'], 'sitzform_kontur'), { blocked: true, texts: ['nicht mit Armlehnen Poliert, Ring'] });
+});
+test('Gegenprobe: die v1.3.1-Auslieferung hat keine Sperren (alter Stand)', () => {
+  const oldHtml = path.join(ROOT, 'deploy', 'visales', 'usdconfig-demo-v1-3-1.html');
+  const oldModule = loadPureModule(oldHtml);
+  assert.ok(oldModule, 'v1.3.1 muss einen @pure-Block haben');
+  assert.equal(typeof oldModule.availabilityFor, 'undefined');
+  assert.equal(/swatch--blocked/.test(fs.readFileSync(oldHtml, 'utf8')), false);
+});
+
 /* ══════════════════════ EBENE 2: Oberflaeche, kopflos ══════════════════════ */
 
 let playwright;

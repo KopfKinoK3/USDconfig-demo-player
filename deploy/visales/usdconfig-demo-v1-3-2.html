@@ -2,24 +2,35 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+
+<!-- Eigenstaendige Demo-Seite fuer visales.de. Oberflaeche und Logik
+     unveraendert aus rules-demo.html im Repo USDconfig-demo-player.
+     Abweichungen ausschliesslich fuer die Auslieferung: ASSET_BASE,
+     PLAYER_VERSION, canonical, og:url, og:image.
+     Aenderungen an Oberflaeche oder Logik gehoeren zuerst ins Repo. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>USDconfig Regeln &amp; Werte Demo · viSales</title>
+<title>USDconfig Demo · Regeln und Werte · Vitra ID Chair · viSales</title>
 <meta name="description" content="Vitra ID Chair Schritt für Schritt konfigurieren, mit typisierten Werten und Regeln als Daten. OpenUSD-basiert, ohne App.">
-<link rel="canonical" href="https://kopfkinok3.github.io/USDconfig-demo-player/rules-demo.html">
+<link rel="canonical" href="https://visales.de/usdconfig-demo-v1-3-2.html">
 <!-- Vorschau beim Teilen. Crawler fuehren kein JavaScript aus, das Bild ist
      deshalb fest und zeigt nicht die jeweils geteilte Konfiguration. -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="viSales USDconfig">
+<meta property="og:site_name" content="viSales">
 <meta property="og:locale" content="de_DE">
-<meta property="og:url" content="https://kopfkinok3.github.io/USDconfig-demo-player/rules-demo.html">
+<meta property="og:url" content="https://visales.de/usdconfig-demo-v1-3-2.html">
 <meta property="og:title" content="USDconfig Regeln &amp; Werte Demo · Vitra ID Chair">
 <meta property="og:description" content="Schritt für Schritt konfigurieren, mit typisierten Werten und Regeln als Daten. OpenUSD-basiert, ohne App.">
-<meta property="og:image" content="https://kopfkinok3.github.io/USDconfig-demo-player/assets/og-usdconfig.png">
+<meta property="og:image" content="https://visales.de/assets/images/og-usdconfig-demo.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta property="og:image:alt" content="USDconfig Produktkonfigurator, Bürodrehstuhl in 3D">
 <meta name="twitter:card" content="summary_large_image">
+
+<!-- Ausgelieferte Player-Version. Muss mit dem Dateinamen, mit dem Tag im
+     Repo USDconfig-demo-player und mit der Anzeige auf der Buehne
+     uebereinstimmen. -->
+<meta name="usdconfig-version" content="1.3.2">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 <style>
 :root {
@@ -258,7 +269,7 @@ model-viewer{width:100%;height:100%}
 
   <!-- Viewer -->
   <div id="viewer-wrap">
-    <div class="badge">model-viewer · WebGL</div>
+    <div class="badge" id="engine-badge">model-viewer · WebGL</div>
     <model-viewer
       id="mv"
       camera-controls
@@ -700,7 +711,14 @@ function readStateFromUrl() {
 }
 
 /* ── ASSET-BASIS ── */
-const ASSET_BASE = '';
+/* Modelle und Datensatz liegen auf GitHub Pages. Einziger der drei
+   gemessenen Hosts, der USDZ und GLB korrekt typisiert und CORS offen
+   ausliefert (gemessen 21. und 28.08.2026). */
+const ASSET_BASE = 'https://kopfkinok3.github.io/USDconfig-demo-player/';
+
+/* Ausgelieferte Version, an drei Stellen sichtbar: Dateiname,
+   meta usdconfig-version im Kopf, Badge auf der Buehne. */
+const PLAYER_VERSION = '1.3.2';
 
 /* ── RESOLVE GLB ── */
 function resolveGlb() {
@@ -1072,6 +1090,10 @@ async function init() {
     DEFAULTS[s.key] = s.options[0].code;
     state[s.key] = null;
   });
+
+  const badge = document.getElementById('engine-badge');
+  if (badge) badge.textContent =
+    `model-viewer · WebGL · OpenUSD · USDconfig ${PLAYER_VERSION}`;
 
   readStateFromUrl();
   syncUrl();

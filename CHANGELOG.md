@@ -1,5 +1,84 @@
 # Changelog
 
+## v1.3.2 (2026-08-30)
+
+**Sperren mit Grund.** Eine Option, die zur aktuellen Auswahl nicht passt, ist jetzt vor dem
+Klick sichtbar gesperrt, nicht erst als Verstoss danach (Duke-Entscheid 30.08.2026,
+Spezifikation `SPEC-A2-regel-layer.md`, Abschnitt "Sperren mit Grund"). Grundsatz: hart sperren,
+mit Grund, in beide Richtungen, erste Wahl gewinnt. Fuer jede Option wird die aktuelle Auswahl
+gebildet, in der die eigene Stufe durch diese Option ersetzt ist (Was-waere-wenn), und regelweise
+geprueft: `excludes` sperrt jede Seite, sobald die andere vollstaendig gewaehlt ist; `requires`
+sperrt den Ausloeser und jede Alternative zu einer offenen Voraussetzung, aber nicht, solange die
+Voraussetzung noch unbelegt ist; `bundle` sperrt das Paket und jede Alternative zu einem
+Paket-Inhalt in beide Richtungen; `affects` sperrt nie. Ein Klick auf Gesperrtes aendert nichts
+und zeigt den Grund als Toast, eine bereits gewaehlte, aber im Konflikt stehende Option (etwa aus
+einem Link) bleibt gewaehlt und trotzdem als gesperrt markiert.
+
+- **Schritt 1b der Auswertung:** Paket gewaehlt plus eine Alternative zu einem Paket-Inhalt im
+  selben Schritt ist jetzt ein Verstoss vom Typ `bundle` mit erzeugter Meldung, zwischen "Buendel
+  aufloesen" und `excludes` eingeordnet.
+- **Neue Funktionen** im `@pure`-Block von `rules-demo.html`: `optionNames(dataset)` (gemeinsamer
+  Bezeichner-Helfer), `bundleConflicts(dataset, selectedCodes)` (Paket-Konflikte als Verstoesse),
+  `availabilityFor(dataset, selectedCodes, code)` (liefert `{ blocked, reasons: [{ type, text,
+  by }] }`). Export ergaenzt: `module.exports = { loadDataset, evaluateConfiguration, sumField,
+  indexOptionsByCode, ruleHintsForOption, availabilityFor, bundleConflicts, optionNames }`.
+  Zusaetzlich ein neuer statischer Hinweis: Alternativen zu Paket-Inhalten tragen jetzt "mit
+  Paket X festgelegt auf Y" (`ruleHintsForOption`), Optionen mit Regelbezug damit neun statt
+  sieben.
+- **Renderer und CSS:** gesperrte Karten zeigen Kreuz statt Haken, `aria-disabled="true"` und den
+  Grund als eigene Zeile statt der statischen Hinweise; gesperrte Farbfelder tragen einen
+  Diagonalstrich, halbe Deckkraft und den Grund im `title` sowie als Zeile unter dem Farbraster.
+  Ein Klick auf Gesperrtes ruft `toast()` mit dem ersten Grund auf, statt die Auswahl zu aendern.
+- **Ebene 1** (`test/a1a2.js`): 7 neue Tests (A2.10.1 bis A2.10.6 plus Gegenprobe), zwei
+  bestehende Tests angepasst (A2.9.3, A2.9.5, neue Paket-Hinweise), 22 auf 29 Tests, je 29 pass,
+  0 fail gegen `rules-demo.html` und gegen die neue Auslieferungsdatei. Gegenprobe gegen
+  `usdconfig-demo-v1-3-1.html`: 21 pass, 8 fail, rot sind genau A2.9.3, A2.9.5 und A2.10.1 bis
+  A2.10.6, weil die alte Fassung Sperren nicht kennt.
+- **Ebene 2** (`test/ui-visales.js`): ein Timing-Fix vor dem Farbraster-Screenshot (leeres Bild in
+  v1.3.1), 4 neue Pruefungen (Testfall 5, gesperrtes Farbfeld und gesperrte Karte), 13 auf 17
+  Pruefungen. Gegen die neue Auslieferungsdatei 17 PASS, 0 FAIL. Gegenprobe gegen
+  `usdconfig-demo-v1-3-1.html`: 12 PASS, 5 FAIL (Version, und die vier neuen Sperr-Pruefungen).
+- **Neue Auslieferungsdatei:** `deploy/visales/usdconfig-demo-v1-3-2.html`, gebaut aus
+  `rules-demo.html` mit `deploy/build-visales-v1-3-2.py` (Kopie des v1.3.1-Bauskripts mit
+  angepasster Versionsnummer). `deploy/visales/usdconfig-demo-v1-3-0.html` und
+  `usdconfig-demo-v1-3-1.html` bleiben live und unveraendert, `usdconfig-demo-v1-3-2.html` steht
+  daneben.
+- **Belege:** `USDconfig 1.4x/REPORTS/belege-v132-2026-08-30/` (Logs beider Ebenen, je sechs
+  Screenshots fuer die neue Datei und die Gegenprobe).
+
+## v1.3.1 (2026-08-30)
+
+**Regelhinweise an der Option.** Jede Regel steht jetzt an der Option selbst, bevor man sie
+durch Probieren findet, nicht erst als Verstoss (Duke-Entscheid 30.08.2026, Spezifikation
+`SPEC-A2-regel-layer.md`, Abschnitt "Regelhinweise an der Option"). Die Hinweise sind
+vollstaendig aus den vier Regeln abgeleitet, es gibt keine handgepflegten Texte: `requires`
+meldet sich an der ausloesenden, der betroffenen und der alternativen Option, `excludes` in
+beiden Richtungen, `bundle` am Paket und an jedem enthaltenen Code, `affects` an jeder
+beteiligten Option mit Partner und Wirkung. Wer eine Regel aendert, bekommt die Hinweise
+geschenkt, ohne eine Zeile Text anzufassen.
+
+- **Neue Funktion:** `ruleHintsForOption(dataset, code)` im `@pure`-Block von `rules-demo.html`,
+  reine Funktion, liefert `[{ type, text }]` in Regel-Reihenfolge ohne Dubletten. Export
+  ergaenzt: `module.exports = { loadDataset, evaluateConfiguration, sumField,
+  indexOptionsByCode, ruleHintsForOption }`.
+- **Renderer und CSS:** Optionskarten zeigen jeden Hinweis als eigene Zeile unter dem Namen
+  (`.opt-text`, `.opt-rule`). Farbfelder mit Hinweis tragen die Klasse `.swatch--rule`, den
+  Hinweistext im `title`, und eine Liste `.swatch-rules` steht unter dem Farbraster, damit der
+  Text auch ohne Tooltip im DOM steht.
+- **Ebene 1** (`test/a1a2.js`): 7 neue Tests (A2.9.1 bis A2.9.6 plus Gegenprobe), 15 auf 22
+  Tests, je 22 pass, 0 fail gegen `rules-demo.html` und gegen die neue Auslieferungsdatei.
+  Gegenprobe gegen `usdconfig-demo-v1-3-0.html`: 16 pass, 6 fail, rot sind genau die sechs
+  neuen Regelhinweis-Tests, weil die alte Fassung die Funktion nicht kennt.
+- **Ebene 2** (`test/ui-visales.js`): 2 neue Pruefungen, 11 auf 13 Pruefungen. Gegen die neue
+  Auslieferungsdatei 13 PASS, 0 FAIL. Gegenprobe gegen `usdconfig-demo-v1-3-0.html`: 10 PASS,
+  3 FAIL (Version, und die beiden neuen Regelhinweis-Pruefungen).
+- **Neue Auslieferungsdatei:** `deploy/visales/usdconfig-demo-v1-3-1.html`, gebaut aus
+  `rules-demo.html` mit `deploy/build-visales-v1-3-1.py` (Kopie des v1.3.0-Bauskripts mit
+  angepasster Versionsnummer). `deploy/visales/usdconfig-demo-v1-3-0.html` bleibt live und
+  unveraendert, `usdconfig-demo-v1-3-1.html` steht daneben.
+- **Belege:** `USDconfig 1.4x/REPORTS/belege-v131-2026-08-30/` (Logs beider Ebenen, je vier
+  Screenshots fuer die neue Datei und die Gegenprobe).
+
 ## v1.3.0 — 2026-08-28
 
 **Datenebenen A1 und A2.** Der Schritt von Ebene 2 auf Ebene 4 der Zieldefinition aus der

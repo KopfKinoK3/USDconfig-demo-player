@@ -28,7 +28,21 @@
    und Exit-Code ungleich 0, wenn mindestens ein Fall fehlgeschlagen ist. Bei der
    Gegenprobe gegen wizard.html ist ein Exit-Code ungleich 0 gewollt; das Skript
    kennt den Unterschied zwischen "geplantes Rot" und "Fehler" nicht, das steht
-   im Bericht, der diesen Lauf einordnet. */
+   im Bericht, der diesen Lauf einordnet.
+
+   Ab v1.3.1 (SPEC-A2, Abschnitt "Regelhinweise an der Option") zwei zusaetzliche
+   Pruefungen in Testfall 3 (ohne Parameter): Regelhinweise an den Optionskarten
+   des ersten Schritts und am Farbraster von Schritt "Bezug", mit einem vierten
+   Screenshot (${UI_TAG}-bezug.png) fuer das Farbraster.
+
+   Ab v1.3.2 (SPEC-A2, Abschnitt "Sperren mit Grund") Testfall 5 zwischen
+   Testfall 3 und dem Fallback: gesperrtes Farbfeld (Lehne Trim vorbelegt,
+   Screenshot ${UI_TAG}-gesperrt-farbe.png) und gesperrte Karte (Sitzform
+   Kontur vorbelegt, Screenshot ${UI_TAG}-gesperrt-karte.png), je mit
+   aria-disabled, Grundtext im DOM, Klick ohne Zustandsaenderung und Toast.
+
+   Der Canonical-Link wird gegen den Dateinamen aus UI_FILE gepruft, nicht gegen
+   eine feste Version. */
 
 const { chromium } = require('playwright');
 const http = require('node:http');
@@ -44,6 +58,7 @@ const UI_TAG = process.env.UI_TAG || 'v130';
 const UI_OUT = process.env.UI_OUT || '.';
 const UI_CHROME = process.env.UI_CHROME || '';
 const UI_PORT = Number(process.env.UI_PORT || 8085);
+const CANON = 'https://visales.de/' + path.basename(UI_FILE);
 
 const VENDOR_MV = path.join(ROOT, 'vendor', 'model-viewer.min.js');
 if (!fs.existsSync(VENDOR_MV)) {
@@ -134,7 +149,7 @@ const wait = async p => {
   check('Preiszeile heisst Demo-Preis', r.priceLabel === 'Demo-Preis', r.priceLabel);
   check('Preis berechnet', /\d/.test(r.price || ''), r.price);
   check('Zusammenfassung heisst Demo-Konfiguration', /DEMO.*Demo-Konfiguration/.test(r.heading || ''), r.heading);
-  check('Canonical auf visales.de v1-3-0', /visales\.de\/usdconfig-demo-v1-3-0\.html/.test(r.canonical || ''), r.canonical);
+  check('Canonical auf visales.de fuer die geprüfte Datei', r.canonical === CANON, r.canonical);
   check('keine JS-Fehler', errs.length === 0, errs.join(' | '));
   await p.screenshot({ path: path.join(UI_OUT, `${UI_TAG}-mit-regeln.png`) });
   await p.close();
@@ -170,7 +185,75 @@ const wait = async p => {
     };
   });
   check('keine Vorbelegung', r.sel === 0, r.sel);
+  const hintsStep1 = await p.evaluate(() => {
+    const g = f => { try { return f(); } catch (e) { return null; } };
+    return {
+      count: g(() => document.querySelectorAll('.opt-card .opt-rule').length),
+      texts: g(() => [...document.querySelectorAll('.opt-card .opt-rule')].map(e => e.textContent)),
+    };
+  });
+  check('Regelhinweise auf Schritt 1', hintsStep1.count === 2 && (hintsStep1.texts || []).every(t => t.startsWith('Regel (Demo): ')), JSON.stringify(hintsStep1.texts));
   await p.screenshot({ path: path.join(UI_OUT, `${UI_TAG}-start.png`) });
+  const hintsBezug = await p.evaluate(() => {
+    const g = f => { try { return f(); } catch (e) { return null; } };
+    g(() => renderStep(3));
+    return {
+      list: g(() => document.querySelectorAll('.swatch-rules .opt-rule').length),
+      marked: g(() => document.querySelectorAll('.swatch.swatch--rule').length),
+      text: g(() => document.querySelector('.swatch-rules .opt-rule').textContent),
+    };
+  });
+  check('Regelhinweis am Farbraster', hintsBezug.list === 1 && hintsBezug.marked === 1 && /Gelb Pastellgruen nicht mit Lehne Trim/.test(hintsBezug.text || ''), JSON.stringify(hintsBezug));
+  await p.waitForTimeout(600);
+  await p.screenshot({ path: path.join(UI_OUT, `${UI_TAG}-bezug.png`) });
+  await p.close();
+
+  // 5) Sperren mit Grund (v1.3.2): Farbfeld gesperrt durch Lehne Trim
+  p = await mk(b);
+  await p.goto(`http://localhost:${UI_PORT}/${UI_FILE}?Lehne=lehne_trim`, { waitUntil: 'load' });
+  await wait(p);
+  let s5 = await p.evaluate(() => {
+    const g = f => { try { return f(); } catch (e) { return null; } };
+    g(() => renderStep(3));
+    const sw = document.querySelector('.swatch--blocked');
+    if (sw) sw.click();
+    return {
+      blocked: g(() => document.querySelectorAll('.swatch--blocked').length),
+      aria: g(() => sw.getAttribute('aria-disabled')),
+      title: g(() => sw.title),
+      line: g(() => document.querySelector('.swatch-rules .opt-rule--blocked').textContent),
+      bezug: g(() => state.Bezug),
+      toast: g(() => document.getElementById('toast').classList.contains('visible') ? document.getElementById('toast').textContent : null),
+    };
+  });
+  check('Farbfeld gesperrt mit Grund', s5.blocked === 1 && s5.aria === 'true' && /Gesperrt \(Demo\): nicht mit Lehne Trim/.test(s5.title || '') && /Gelb Pastellgruen nicht mit Lehne Trim/.test(s5.line || ''), JSON.stringify(s5));
+  check('Klick auf gesperrtes Farbfeld: keine Auswahl, Toast', (s5.bezug === null || s5.bezug === undefined) && /Gelb Pastellgruen/.test(s5.toast || ''), JSON.stringify({ bezug: s5.bezug, toast: s5.toast }));
+  await p.waitForTimeout(600);
+  await p.screenshot({ path: path.join(UI_OUT, `${UI_TAG}-gesperrt-farbe.png`) });
+  await p.close();
+
+  // 5b) Karte gesperrt durch Sitzform Kontur
+  p = await mk(b);
+  await p.goto(`http://localhost:${UI_PORT}/${UI_FILE}?Sitzform=sitzform_kontur`, { waitUntil: 'load' });
+  await wait(p);
+  s5 = await p.evaluate(() => {
+    const g = f => { try { return f(); } catch (e) { return null; } };
+    g(() => renderStep(2));
+    const card = document.querySelector('.opt-card--blocked');
+    if (card) card.click();
+    return {
+      blocked: g(() => document.querySelectorAll('.opt-card--blocked').length),
+      label: g(() => card.querySelector('.opt-label').textContent),
+      aria: g(() => card.getAttribute('aria-disabled')),
+      line: g(() => card.querySelector('.opt-rule--blocked').textContent),
+      arm: g(() => state.Armlehnen),
+      toast: g(() => document.getElementById('toast').classList.contains('visible') ? document.getElementById('toast').textContent : null),
+    };
+  });
+  check('Karte gesperrt mit Grund', s5.blocked === 1 && s5.label === 'Poliert, Ring' && s5.aria === 'true' && /Gesperrt \(Demo\): braucht Sitzform Normal, gewählt ist Sitzform Kontur/.test(s5.line || ''), JSON.stringify(s5));
+  check('Klick auf gesperrte Karte: keine Auswahl, Toast', (s5.arm === null || s5.arm === undefined) && /Poliert, Ring/.test(s5.toast || ''), JSON.stringify({ arm: s5.arm, toast: s5.toast }));
+  await p.waitForTimeout(600);
+  await p.screenshot({ path: path.join(UI_OUT, `${UI_TAG}-gesperrt-karte.png`) });
   await p.close();
 
   // 4) Ohne Datensatz: Fallback statt weisser Seite
