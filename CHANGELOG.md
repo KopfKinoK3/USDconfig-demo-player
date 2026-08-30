@@ -38,6 +38,34 @@ v1.3.0 war in der Master-Roadmap für den Plattform-Ausbau reserviert. Der Bezei
 vergeben worden, der Plattform-Ausbau heißt seit dem 28.08.2026 v1.4.0. Ausgeliefertes
 schlägt Geplantes.
 
+### Ausgelieferte Fassung fuer visales.de
+
+`deploy/visales/usdconfig-demo-v1-3-0.html`, gebaut aus `rules-demo.html`. Oberflaeche und
+Logik sind unveraendert uebernommen, der Unterschied ist ausschliesslich die Auslieferung:
+
+- `ASSET_BASE` auf `https://kopfkinok3.github.io/USDconfig-demo-player/`. GLB, USDZ und der
+  Datensatz kommen von dort, gemessen am 29.08.2026 alle mit korrektem `content-type` und
+  offenem CORS. Alle zwoelf GLB-Dateien, `chair-master.usdz` und
+  `data/buerostuhl-demo.json` liefern 200.
+- `PLAYER_VERSION = '1.3.0'`, sichtbar an drei Stellen: Dateiname, `meta name=usdconfig-version`
+  im Kopf und Badge auf der Buehne.
+- `canonical` und `og:url` auf `https://visales.de/usdconfig-demo-v1-3-0.html`, `og:image` auf
+  das Vorschaubild auf visales.de.
+
+Kein Warm-Tech-Umbau. Entscheidung Duke Jera vom 29.08.2026: das Wizard-Design bleibt.
+
+Abnahme der ausgelieferten Fassung, gemessen 30.08.2026: Ebene 1 mit
+`RULES_FILE=deploy/visales/usdconfig-demo-v1-3-0.html node --test --test-name-pattern='^(Gegenprobe|A1\.|A2\.)' test/a1a2.js`
+15 von 15 gruen, Gegenprobe mit `RULES_FILE=wizard.html` bricht beim Laden ab (kein
+`@pure-start`/`@pure-end`-Block in `wizard.html`), Exit ungleich 0. Ebene 2 mit dem neuen
+`test/ui-visales.js` (lokal mit Playwright-Chromium statt Cloud-Container-Chromium, sonst wie
+gebrieft) 11 von 11 gruen gegen die Auslieferungsdatei, Gegenprobe gegen `wizard.html` 3 PASS
+und 8 FAIL. Belegbilder und Logs in
+`USDconfig 1.4x/REPORTS/belege-deploy-1-2026-08-29/`. Werkzeuge:
+`deploy/build-visales-v1-3-0.py` (baut die Auslieferungsdatei aus `rules-demo.html`) und
+`test/ui-visales.js` (Ebene 2 gegen die Auslieferungsfassung). Der Deploy-Commit bekommt
+keinen eigenen Tag, weil `v1.3.0` bereits auf `6367c38` liegt.
+
 ## v1.1.9 — 2026-08-28
 
 `ASSET_BASE` als einzige Stelle, an der sich eine ausgelagerte Fassung des Players

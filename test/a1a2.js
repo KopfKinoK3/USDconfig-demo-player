@@ -13,7 +13,11 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
 const ROOT = path.join(__dirname, '..');
-const RULES_HTML = path.join(ROOT, 'rules-demo.html');
+/* RULES_FILE (Pfad relativ zur Repo-Wurzel) waehlt die zu pruefende Datei,
+   Standard rules-demo.html. So laeuft Ebene 1 auch gegen die ausgelieferte
+   Fassung unter deploy/visales/. Ebene 2 bleibt fest auf rules-demo.html. */
+const RULES_FILE = process.env.RULES_FILE || 'rules-demo.html';
+const RULES_HTML = path.join(ROOT, RULES_FILE);
 const WIZARD_HTML = path.join(ROOT, 'wizard.html');
 const DATASET_PATH = path.join(ROOT, 'data', 'buerostuhl-demo.json');
 
@@ -35,7 +39,7 @@ const RULES_MODULE = loadPureModule(RULES_HTML);
 const REAL_DATASET = JSON.parse(fs.readFileSync(DATASET_PATH, 'utf8'));
 
 if (!RULES_MODULE) {
-  throw new Error('rules-demo.html liefert keinen @pure-start/@pure-end-Block -- Auswerter fehlt.');
+  throw new Error(RULES_FILE + ' liefert keinen @pure-start/@pure-end-Block -- Auswerter fehlt.');
 }
 const { loadDataset, evaluateConfiguration } = RULES_MODULE;
 
